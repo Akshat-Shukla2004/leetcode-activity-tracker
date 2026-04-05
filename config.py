@@ -24,7 +24,8 @@ OPPONENT_USERNAMES = [
     "ullasm07",
     "anga205",
     "shakirth-anisha",
-    "aman-khandelwal"
+    "aman-khandelwal",
+    "Akshat18Shukla2004"
 ]
 
 # ─── Storage ──────────────────────────────────────────────────────────────────
