@@ -10,11 +10,22 @@ BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "")
 CHAT_ID: str   = os.environ.get("CHAT_ID", "")
 
 # ─── LeetCode Usernames ───────────────────────────────────────────────────────
-MY_USERNAME: str = os.environ.get("MY_USERNAME", "your_username")
+MY_USERNAME = "AkshatPrep"
 
-# Support multiple opponents as a comma-separated env var, e.g. "alice,bob"
-_raw_opponents = os.environ.get("OPPONENT_USERNAMES", "opponent_username")
-OPPONENT_USERNAMES: list[str] = [u.strip() for u in _raw_opponents.split(",") if u.strip()]
+OPPONENT_USERNAMES = [
+    "riceeater21",
+    "Adarsh200IQ",
+    "AbhishekSNair",
+    "Akhilesh_M_2204",
+    "trigun_2005",
+    "shreekar6362",
+    "onShoreApple",
+    "devansh_shukla15",
+    "ullasm07",
+    "anga205",
+    "shakirth-anisha",
+    "aman-khandelwal"
+]
 
 # ─── Storage ──────────────────────────────────────────────────────────────────
 DATA_FILE: str = "data.json"
