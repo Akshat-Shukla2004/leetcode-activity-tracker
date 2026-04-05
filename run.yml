@@ -1,0 +1,108 @@
+name: LeetCode Competition Tracker
+
+on:
+  schedule:
+    # Runs every 5 minutes (GitHub Actions minimum granularity)
+    # Note: GitHub may delay scheduled runs by a few minutes under high load.
+    - cron: "*/5 * * * *"
+
+  # Allow manual trigger from GitHub Actions UI (useful for testing)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "Run mode: 'check' or 'leaderboard'"
+        required: false
+        default: "check"
+
+jobs:
+  track:
+    name: Check LeetCode Activity
+    runs-on: ubuntu-latest
+
+    steps:
+      # ── 1. Checkout repo ──────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Set up Python ──────────────────────────────────────────────────
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      # ── 3. Install dependencies ───────────────────────────────────────────
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      # ── 4. Restore cached data.json from previous run ─────────────────────
+      # We use GitHub Actions cache to persist state between runs.
+      # Cache key rotates daily so it doesn't grow forever.
+      - name: Restore state cache
+        uses: actions/cache@v4
+        with:
+          path: data.json
+          key: leetcode-tracker-state-${{ runner.os }}-${{ hashFiles('data.json') }}
+          restore-keys: |
+            leetcode-tracker-state-${{ runner.os }}-
+
+      # ── 5. Run the tracker ────────────────────────────────────────────────
+      - name: Run tracker
+        env:
+          BOT_TOKEN:            ${{ secrets.BOT_TOKEN }}
+          CHAT_ID:              ${{ secrets.CHAT_ID }}
+          MY_USERNAME:          ${{ secrets.MY_USERNAME }}
+          OPPONENT_USERNAMES:   ${{ secrets.OPPONENT_USERNAMES }}
+        run: |
+          if [ "${{ github.event.inputs.mode }}" = "leaderboard" ]; then
+            python main.py leaderboard
+          else
+            python main.py
+          fi
+
+      # ── 6. Save updated data.json back to cache ───────────────────────────
+      # The cache step above will automatically update if the file changed.
+      # No explicit upload needed — actions/cache handles post-run save.
+
+  # ── Daily leaderboard job ─────────────────────────────────────────────────
+  leaderboard:
+    name: Daily Leaderboard
+    runs-on: ubuntu-latest
+
+    # Run once per day at 20:00 UTC (1:30 AM IST)
+    if: github.event_name == 'schedule'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Restore state cache
+        uses: actions/cache@v4
+        with:
+          path: data.json
+          key: leetcode-tracker-state-${{ runner.os }}-${{ hashFiles('data.json') }}
+          restore-keys: |
+            leetcode-tracker-state-${{ runner.os }}-
+
+      - name: Send leaderboard
+        env:
+          BOT_TOKEN:            ${{ secrets.BOT_TOKEN }}
+          CHAT_ID:              ${{ secrets.CHAT_ID }}
+          MY_USERNAME:          ${{ secrets.MY_USERNAME }}
+          OPPONENT_USERNAMES:   ${{ secrets.OPPONENT_USERNAMES }}
+        # Only send leaderboard once (at a specific minute of the day)
+        # 20:00 UTC = the 4th run of the 20th hour (cron runs at :00, :05, ... :55)
+        run: |
+          MINUTE=$(date +%M)
+          HOUR=$(date +%H)
+          if [ "$HOUR" = "20" ] && [ "$MINUTE" -lt "05" ]; then
+            python main.py leaderboard
+          fi
