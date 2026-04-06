@@ -61,6 +61,15 @@ def _format(template: str, **kwargs) -> str:
         return template
 
 
+def _escape_telegram_markdown(text: str) -> str:
+    """Escape characters that can break Telegram's legacy Markdown parse mode."""
+    # Escape backslash first to avoid double-escaping.
+    text = text.replace("\\", "\\\\")
+    for ch in ("_", "*", "`", "["):
+        text = text.replace(ch, f"\\{ch}")
+    return text
+
+
 def generate_alert_message(
     opponent: str,
     problem: str,
@@ -84,8 +93,8 @@ def generate_alert_message(
     minutes = max(0, int((time.time() - submission_ts) / 60))
 
     kwargs = {
-        "opponent":      opponent,
-        "problem":       problem,
+        "opponent":      _escape_telegram_markdown(opponent),
+        "problem":       _escape_telegram_markdown(problem),
         "minutes":       minutes,
         "user_inactive": user_inactive_minutes,
         "streak":        opponent_streak,
@@ -135,7 +144,7 @@ def generate_leaderboard_message(
     for uname in all_users:
         solves = get_daily_solves(data, uname)
         streak = get_streak(data, uname)
-        label = "🧑 You" if uname == my_username else f"😈 {uname}"
+        label = "🧑 You" if uname == my_username else f"😈 {_escape_telegram_markdown(uname)}"
         entries.append((solves, streak, label))
 
     # Sort by descending solve count

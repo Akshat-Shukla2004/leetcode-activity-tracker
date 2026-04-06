@@ -73,6 +73,19 @@ def check_opponent(data: dict, opponent: str) -> bool:
         "NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts
     )
 
+    # Guard: don't alert on very old solves (e.g., first run after reset)
+    max_age_seconds = int(config.MAX_ALERT_AGE_HOURS * 60 * 60)
+    age_seconds = leetcode.seconds_ago(new_ts)
+    if age_seconds > max_age_seconds:
+        logger.info(
+            "'%s' latest accepted is %.1f hours old (cutoff=%d hours) — syncing baseline only.",
+            opponent,
+            age_seconds / 3600,
+            config.MAX_ALERT_AGE_HOURS,
+        )
+        storage.set_last_submission_ts(data, opponent, new_ts)
+        return False
+
     # Update storage first to prevent double-alerts even if notify fails
     storage.set_last_submission_ts(data, opponent, new_ts)
     daily_count = storage.increment_daily_solves(data, opponent)

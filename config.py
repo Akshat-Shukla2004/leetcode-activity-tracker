@@ -10,9 +10,8 @@ BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "")
 CHAT_ID: str   = os.environ.get("CHAT_ID", "")
 
 # ─── LeetCode Usernames ───────────────────────────────────────────────────────
-MY_USERNAME = "AkshatPrep"
-
-OPPONENT_USERNAMES = [
+_DEFAULT_MY_USERNAME = "AkshatPrep"
+_DEFAULT_OPPONENT_USERNAMES = [
     "riceeater21",
     "Adarsh200IQ",
     "AbhishekSNair",
@@ -25,8 +24,16 @@ OPPONENT_USERNAMES = [
     "anga205",
     "shakirth-anisha",
     "aman-khandelwal",
-    "Akshat18Shukla2004"
+    "Akshat18Shukla2004",
 ]
+
+MY_USERNAME = os.environ.get("MY_USERNAME", "").strip() or _DEFAULT_MY_USERNAME
+
+_opponents_env = os.environ.get("OPPONENT_USERNAMES", "").strip()
+if _opponents_env:
+    OPPONENT_USERNAMES = [u.strip() for u in _opponents_env.split(",") if u.strip()]
+else:
+    OPPONENT_USERNAMES = _DEFAULT_OPPONENT_USERNAMES
 
 # ─── Storage ──────────────────────────────────────────────────────────────────
 DATA_FILE: str = "data.json"
@@ -34,6 +41,9 @@ DATA_FILE: str = "data.json"
 # ─── Thresholds ───────────────────────────────────────────────────────────────
 # Minutes of user inactivity before messages escalate in aggression
 INACTIVITY_ESCALATION_MINUTES: int = 30
+
+# Ignore opponent submissions older than this (prevents old/baseline spam)
+MAX_ALERT_AGE_HOURS: int = 24
 
 # ─── Validation ───────────────────────────────────────────────────────────────
 def validate() -> None:
