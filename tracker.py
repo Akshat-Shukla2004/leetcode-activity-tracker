@@ -59,6 +59,16 @@ def check_opponent(data: dict, opponent: str) -> bool:
     new_ts   = latest["timestamp"]
     last_ts  = storage.get_last_submission_ts(data, opponent)
 
+    # First time seeing this opponent: set baseline only, no retroactive alert.
+    if last_ts == 0:
+        logger.info(
+            "'%s' baseline initialized at ts=%d (no alert on first sync).",
+            opponent,
+            new_ts,
+        )
+        storage.set_last_submission_ts(data, opponent, new_ts)
+        return False
+
     # Guard: already seen this exact submission (or something newer)
     if new_ts <= last_ts:
         logger.info(
@@ -143,6 +153,11 @@ def sync_my_activity(data: dict) -> None:
 
     new_ts  = latest["timestamp"]
     last_ts = storage.get_last_submission_ts(data, config.MY_USERNAME)
+
+    if last_ts == 0:
+        logger.info("Initialized my baseline at ts=%d (no retroactive self-count).", new_ts)
+        storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
+        return
 
     if new_ts > last_ts:
         logger.info(

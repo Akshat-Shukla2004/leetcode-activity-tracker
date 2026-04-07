@@ -17,31 +17,31 @@ import config
 
 _AGGRESSIVE = [
     "😈 {opponent} just solved *{problem}* — {minutes} min ago. You did nothing.",
-    "🔥 He's grinding *{problem}*. You're watching.",
+    "🔥 {opponent} is grinding *{problem}*. You're watching.",
     "💀 {opponent} solved *{problem}* {minutes} minutes ago. Still comfortable?",
     "😤 Another one. *{problem}* down for {opponent}. You haven't moved.",
     "⚔️ {opponent} just clocked *{problem}*. Your turn — or are you scared?",
-    "😂 {minutes} minutes ago he solved *{problem}*. What's your excuse?",
+    "😂 {minutes} minutes ago {opponent} solved *{problem}*. What's your excuse?",
 ]
 
 _SMART_PRESSURE = [
     "🧠 {opponent} solved *{problem}* recently. You've been inactive for {user_inactive} min.",
-    "📊 He's building momentum. *{problem}* solved {minutes} min ago. You're falling behind.",
+    "📊 {opponent} is building momentum. *{problem}* solved {minutes} min ago. You're falling behind.",
     "🎯 Consistent effort wins. {opponent} knows that — *{problem}* done {minutes} min ago.",
     "🧩 *{problem}* checked off by {opponent}. The gap is growing silently.",
     "📈 {opponent} solved *{problem}* {minutes} min ago. Every minute you wait, the lead widens.",
 ]
 
 _TIME_URGENCY = [
-    "⏳ {minutes} minutes ago he moved ahead with *{problem}*. Clock's ticking.",
+    "⏳ {minutes} minutes ago {opponent} moved ahead with *{problem}*. Clock's ticking.",
     "⌛ {minutes} min. That's how long ago {opponent} solved *{problem}* and you still haven't started.",
-    "🚨 *{problem}* — solved {minutes} minutes ago. Time is the only thing you can't get back.",
-    "⏰ {minutes} minutes of inactivity. {opponent} didn't waste his.",
+    "🚨 *{problem}* — {opponent} solved it {minutes} minutes ago. Time is the only thing you can't get back.",
+    "⏰ {minutes} minutes of inactivity. {opponent} didn't waste those minutes.",
 ]
 
 _NUCLEAR = [
     "☢️ WAKE UP. {opponent} solved *{problem}* {minutes} min ago AND you've been idle for {user_inactive} min. This is embarrassing.",
-    "🔴 RED ALERT. {user_inactive} min of silence from you. {opponent} just solved *{problem}*. He's not stopping.",
+    "🔴 RED ALERT. {user_inactive} min of silence from you. {opponent} just solved *{problem}*. {opponent} is not stopping.",
     "💣 {opponent} is on a {streak}-day streak and just solved *{problem}*. You're coasting. Stop it.",
     "😡 {user_inactive} minutes. That's how long you've done nothing while {opponent} solved *{problem}*. Unacceptable.",
 ]
@@ -154,6 +154,13 @@ def generate_leaderboard_message(
         medal = ["🥇", "🥈", "🥉"][rank - 1] if rank <= 3 else f"{rank}."
         fire  = f" 🔥×{streak}" if streak > 0 else ""
         lines.append(f"{medal} {label}: *{solves}* solve(s) today{fire}")
+
+    my_solves = get_daily_solves(data, my_username)
+    opponents_total = sum(get_daily_solves(data, uname) for uname in opponent_usernames)
+    lines.append("")
+    lines.append(
+        f"🧾 Opponents solved *{opponents_total}* question(s) today while you solved *{my_solves}* question(s)."
+    )
 
     return "\n".join(lines)
 

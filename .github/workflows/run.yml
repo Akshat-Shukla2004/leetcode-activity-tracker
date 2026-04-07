@@ -36,13 +36,12 @@ jobs:
         run: pip install -r requirements.txt
 
       # ── 4. Restore cached data.json from previous run ─────────────────────
-      # We use GitHub Actions cache to persist state between runs.
-      # Cache key rotates daily so it doesn't grow forever.
+      # Use restore/save split with unique keys so state can be updated each run.
       - name: Restore state cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ hashFiles('data.json') }}
+          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
           restore-keys: |
             leetcode-tracker-state-${{ runner.os }}-
 
@@ -61,8 +60,12 @@ jobs:
           fi
 
       # ── 6. Save updated data.json back to cache ───────────────────────────
-      # The cache step above will automatically update if the file changed.
-      # No explicit upload needed — actions/cache handles post-run save.
+      - name: Save updated state cache
+        if: always() && hashFiles('data.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data.json
+          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
 
   # ── Daily leaderboard job ─────────────────────────────────────────────────
   leaderboard:
@@ -85,10 +88,10 @@ jobs:
         run: pip install -r requirements.txt
 
       - name: Restore state cache
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ hashFiles('data.json') }}
+          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
           restore-keys: |
             leetcode-tracker-state-${{ runner.os }}-
 
@@ -106,3 +109,10 @@ jobs:
           if [ "$HOUR" = "20" ] && [ "$MINUTE" -lt "05" ]; then
             python main.py leaderboard
           fi
+
+      - name: Save updated state cache
+        if: always() && hashFiles('data.json') != ''
+        uses: actions/cache/save@v4
+        with:
+          path: data.json
+          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
