@@ -96,6 +96,22 @@ def fetch_accepted_submissions(username: str, limit: int = 20) -> list[dict]:
     return accepted
 
 
+def get_accepted_submissions_since(
+    username: str,
+    since_ts: int = 0,
+    limit: int = 50,
+) -> list[dict]:
+    """
+    Return accepted submissions newer than a stored timestamp.
+
+    The results are sorted oldest-first so callers can replay every missed
+    solve in order.
+    """
+    submissions = fetch_accepted_submissions(username, limit=limit)
+    fresh = [sub for sub in submissions if sub["timestamp"] > since_ts]
+    return sorted(fresh, key=lambda sub: sub["timestamp"])
+
+
 def get_latest_accepted(username: str) -> Optional[dict]:
     """
     Convenience: return only the single most recent accepted submission,

@@ -12,7 +12,7 @@ leetcode_tracker/
 ├── config.py         ← Environment config + validation
 ├── leetcode.py       ← LeetCode GraphQL API client
 ├── tracker.py        ← Core event detection logic
-├── notifier.py       ← Telegram two-message alert system
+├── notifier.py       ← Telegram alert system
 ├── messages.py       ← Dynamic psychological message engine
 ├── storage.py        ← JSON persistence layer
 ├── data.json         ← State file (auto-managed)
@@ -108,9 +108,9 @@ The workflow runs every 5 minutes automatically. You can also trigger it manuall
 - Only fires an alert if the timestamp is **newer** — never on count changes
 - Zero duplicate alerts
 
-### Two-message Telegram pattern
-1. **Message 1** (notifies): `⚠️ Alert`  — notification preview shows only this
-2. **Message 2** (silent): actual details — hidden until you open the app
+### Telegram alerts
+- Each new accepted solve sends one notification with the full message body
+- No bait or decoy messages are sent
 
 ### Message intensity scaling
 | User inactive | Message tier |

@@ -1,17 +1,11 @@
 """notifier.py - Telegram notification layer.
 
-Implements the "two-message" stealth alert pattern:
-  1) A short bait message (notifies)
-  2) The real message (silent)
-
 This module is intentionally small and depends only on `requests`.
 """
 
 from __future__ import annotations
 
 import logging
-import random
-import time
 from typing import Any
 
 import requests
@@ -55,33 +49,9 @@ def _send_raw(text: str, *, disable_notification: bool) -> bool:
 
 
 def send_alert(body: str) -> bool:
-    """Send the two-part stealth alert (bait + silent body)."""
+    """Send a single alert message with a normal Telegram notification."""
 
-    fake_msgs = [
-        "hop on fort",
-        "bro come valo?",
-        "1 game?",
-        "queue?",
-        "u online?",
-        "come discord",
-        "quick match?",
-        "we need 1 more",
-        "join fast",
-        "playing?",
-    ]
-
-    bait = random.choice(fake_msgs)
-
-    ok1 = _send_raw(bait, disable_notification=False)
-    if not ok1:
-        logger.error("Failed to send bait message; skipping body.")
-        return False
-
-    # Small delay so messages arrive in order
-    time.sleep(0.7)
-
-    ok2 = _send_raw(body, disable_notification=True)
-    return ok1 and ok2
+    return _send_raw(body, disable_notification=False)
 
 
 def send_silent(body: str) -> bool:

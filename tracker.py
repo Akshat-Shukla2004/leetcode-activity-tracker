@@ -33,7 +33,7 @@ def _get_user_inactive_minutes(data: dict) -> int:
     return leetcode.minutes_ago(last_ts)
 
 
-def check_opponent(data: dict, opponent: str) -> bool:
+def check_opponent(data: dict, opponent: str) -> int:
     """
     Check a single opponent for new submissions.
 
@@ -48,78 +48,90 @@ def check_opponent(data: dict, opponent: str) -> bool:
         opponent: Opponent's LeetCode username.
 
     Returns:
-        True if a new submission was detected and acted upon, else False.
+        Number of new submissions detected and acted upon.
     """
-    latest = leetcode.get_latest_accepted(opponent)
-
-    if not latest:
-        logger.info("No accepted submissions found for '%s'.", opponent)
-        return False
-
-    new_ts   = latest["timestamp"]
-    last_ts  = storage.get_last_submission_ts(data, opponent)
+    last_ts = storage.get_last_submission_ts(data, opponent)
 
     # First time seeing this opponent: set baseline only, no retroactive alert.
     if last_ts == 0:
+        latest = leetcode.get_latest_accepted(opponent)
+
+        if not latest:
+            logger.info("No accepted submissions found for '%s'.", opponent)
+            return 0
+
+        new_ts = latest["timestamp"]
         logger.info(
             "'%s' baseline initialized at ts=%d (no alert on first sync).",
             opponent,
             new_ts,
         )
         storage.set_last_submission_ts(data, opponent, new_ts)
-        return False
+        return 0
 
-    # Guard: already seen this exact submission (or something newer)
-    if new_ts <= last_ts:
-        logger.info(
-            "'%s' — no new submission (latest ts=%d, last seen=%d).",
-            opponent, new_ts, last_ts,
-        )
-        return False
+    submissions = leetcode.get_accepted_submissions_since(opponent, since_ts=last_ts)
 
-    # ── NEW SUBMISSION DETECTED ───────────────────────────────────────────────
-    problem = latest["title"]
-    logger.info(
-        "NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts
-    )
+    if not submissions:
+        logger.info("No accepted submissions found for '%s'.", opponent)
+        return 0
 
     # Guard: don't alert on very old solves (e.g., first run after reset)
     max_age_seconds = int(config.MAX_ALERT_AGE_HOURS * 60 * 60)
-    age_seconds = leetcode.seconds_ago(new_ts)
-    if age_seconds > max_age_seconds:
+    fresh_submissions = [
+        submission
+        for submission in submissions
+        if leetcode.seconds_ago(submission["timestamp"]) <= max_age_seconds
+    ]
+
+    if not fresh_submissions:
+        newest_ts = submissions[-1]["timestamp"]
         logger.info(
-            "'%s' latest accepted is %.1f hours old (cutoff=%d hours) — syncing baseline only.",
+            "'%s' latest accepted is too old (cutoff=%d hours) — syncing baseline to ts=%d.",
             opponent,
-            age_seconds / 3600,
             config.MAX_ALERT_AGE_HOURS,
+            newest_ts,
         )
+        storage.set_last_submission_ts(data, opponent, newest_ts)
+        return 0
+
+    alert_count = 0
+    last_seen_ts = last_ts
+
+    for submission in fresh_submissions:
+        new_ts = submission["timestamp"]
+        problem = submission["title"]
+        logger.info(
+            "NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts
+        )
+
         storage.set_last_submission_ts(data, opponent, new_ts)
-        return False
+        daily_count = storage.increment_daily_solves(data, opponent)
+        streak = storage.update_streak(data, opponent)
 
-    # Update storage first to prevent double-alerts even if notify fails
-    storage.set_last_submission_ts(data, opponent, new_ts)
-    daily_count = storage.increment_daily_solves(data, opponent)
-    streak      = storage.update_streak(data, opponent)
+        logger.info(
+            "'%s' daily count: %d | streak: %d", opponent, daily_count, streak
+        )
 
-    logger.info(
-        "'%s' daily count: %d | streak: %d", opponent, daily_count, streak
-    )
+        user_inactive = _get_user_inactive_minutes(data)
+        msg = messages.generate_alert_message(
+            opponent=opponent,
+            problem=problem,
+            submission_ts=new_ts,
+            user_inactive_minutes=user_inactive,
+            opponent_streak=streak,
+        )
 
-    # Build and send the alert
-    user_inactive = _get_user_inactive_minutes(data)
-    msg = messages.generate_alert_message(
-        opponent=opponent,
-        problem=problem,
-        submission_ts=new_ts,
-        user_inactive_minutes=user_inactive,
-        opponent_streak=streak,
-    )
+        success = notifier.send_alert(msg)
+        if not success:
+            logger.warning("Alert for '%s' failed to send.", opponent)
 
-    success = notifier.send_alert(msg)
-    if not success:
-        logger.warning("Alert for '%s' failed to send.", opponent)
+        alert_count += 1
+        last_seen_ts = new_ts
 
-    return True
+    if last_seen_ts > last_ts:
+        storage.set_last_submission_ts(data, opponent, last_seen_ts)
+
+    return alert_count
 
 
 def check_user_inactivity(data: dict) -> None:
@@ -190,9 +202,7 @@ def run_check_cycle() -> None:
     new_events = 0
     for opponent in config.OPPONENT_USERNAMES:
         try:
-            found = check_opponent(data, opponent)
-            if found:
-                new_events += 1
+            new_events += check_opponent(data, opponent)
         except Exception as exc:
             # Never crash the whole run due to one opponent failing
             logger.exception("Unexpected error checking '%s': %s", opponent, exc)
