@@ -28,6 +28,11 @@ _DEFAULT_OPPONENT_USERNAMES = [
     "abhay14505",
     "sshivamanand",
     "shardool_pandey",
+    "AmiteshSinha",
+    "hemanth-s1501_",
+    "srujan_kashyaps",
+    "BNpq6Bs3HH",
+    "krthk200518",
 ]
 
 MY_USERNAME = os.environ.get("MY_USERNAME", "").strip() or _DEFAULT_MY_USERNAME
