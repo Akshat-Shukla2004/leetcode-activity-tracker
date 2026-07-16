@@ -49,7 +49,7 @@ DATA_FILE: str = "data.json"
 
 # ─── Thresholds ───────────────────────────────────────────────────────────────
 # Minutes of user inactivity before messages escalate in aggression
-INACTIVITY_ESCALATION_MINUTES: int = 30
+INACTIVITY_ESCALATION_MINUTES: int = 60
 
 # Ignore opponent submissions older than this (prevents old/baseline spam)
 MAX_ALERT_AGE_HOURS: int = 24
