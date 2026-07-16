@@ -12,7 +12,6 @@ import json
 import logging
 import os
 from datetime import date
-from typing import Any
 
 from backend import config
 

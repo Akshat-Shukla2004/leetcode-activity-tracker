@@ -10,8 +10,6 @@ Responsible for:
 """
 
 import logging
-import time
-from datetime import date
 
 from backend import config
 from backend import leetcode

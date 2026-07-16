@@ -9,6 +9,12 @@ Usage:
 import logging
 import sys
 
+from backend import config
+from backend import messages
+from backend import notifier
+from backend import storage
+from backend import tracker
+
 # ── Configure logging before any other imports ────────────────────────────────
 logging.basicConfig(
     level=logging.INFO,
@@ -17,12 +23,6 @@ logging.basicConfig(
 )
 
 logger = logging.getLogger(__name__)
-
-from backend import config
-from backend import messages
-from backend import notifier
-from backend import storage
-from backend import tracker
 
 
 def run_leaderboard() -> None:
