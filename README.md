@@ -1,4 +1,5 @@
 # 🏆 LeetCode Competition Tracker
+[![Backend Tests](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml)
 
 A fully automated, free-to-run bot that monitors your LeetCode opponent's activity and sends psychologically engaging Telegram alerts — every 3 hours via GitHub Actions.
 
