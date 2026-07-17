@@ -2,14 +2,10 @@
   "users": {
     "your_username": {
       "last_submission_ts": 9999999999,
-      "streak": 0,
-      "last_solve_date": "",
       "daily_solves": {}
     },
     "opponent_username": {
       "last_submission_ts": 9999999999,
-      "streak": 0,
-      "last_solve_date": "",
       "daily_solves": {}
     }
   },

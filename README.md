@@ -1,7 +1,18 @@
 # 🏆 LeetCode Competition Tracker
 [![Backend Tests](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml)
 
-A fully automated, free-to-run bot that monitors your LeetCode opponent's activity and sends psychologically engaging Telegram alerts — every 3 hours via GitHub Actions.
+A lightweight Python bot that monitors LeetCode activity, detects newly accepted submissions, and sends Telegram alerts through GitHub Actions scheduled workflows.
+
+---
+
+## ✨ Features
+
+- Track multiple LeetCode users at once
+- Detect newly accepted submissions from LeetCode
+- Send Telegram notifications for fresh solves
+- Persist state between GitHub Actions runs
+- Support manual workflow triggers for check and leaderboard modes
+- Keep the implementation lightweight and Python-based
 
 ---
 
@@ -20,7 +31,7 @@ leetcode_tracker/
 ├── requirements.txt
 └── .github/
     └── workflows/
-        └── run.yml   ← GitHub Actions (every 3 hours)
+        └── run.yml   ← GitHub Actions scheduled workflow
 ```
 
 ---
@@ -50,7 +61,7 @@ export OPPONENT_USERNAMES="opponent1,opponent2"   # comma-separated
 # Normal competition check
 python main.py
 
-# Send daily leaderboard
+# Send a leaderboard summary
 python main.py leaderboard
 ```
 
@@ -95,9 +106,9 @@ Add these secrets:
 
 Go to **Actions** tab → click **Enable GitHub Actions**
 
-The workflow runs every 3 hours automatically. You can also trigger it manually via the **workflow_dispatch** button.
+The project runs automatically through GitHub Actions scheduled workflows. Actual execution timing depends on GitHub Actions scheduling. You can also trigger it manually via the **workflow_dispatch** button.
 
-> ⚠️ GitHub may delay scheduled runs by a few minutes during high-traffic periods. This is normal.
+> ⚠️ GitHub scheduled workflows are best-effort and may run later than the configured schedule.
 
 ---
 
@@ -117,21 +128,20 @@ The workflow runs every 3 hours automatically. You can also trigger it manually 
 | User inactive | Message tier |
 |---|---|
 | < 15 min | Standard rotation (all categories) |
-| 15–29 min | Aggressive + Time urgency |
-| ≥ 30 min | Nuclear tier |
-| Opponent streak ≥ 3 | Streak callout emphasis |
+| 15–59 min | Aggressive + Time urgency |
+| ≥ 60 min | Nuclear tier via inactivity threshold |
 
 ### State persistence
 GitHub Actions `cache` stores `data.json` between runs so state survives across executions.
 
 ---
 
-## 📊 Daily Leaderboard
+## 📊 Leaderboard Summary
 
-Sent automatically at 20:00 UTC each day. Shows:
+Available through the `leaderboard` mode. Shows:
 - Today's solve count for you and each opponent
-- Current streak (🔥) per user
 - Ranked by daily solves
+- Persistent solve totals per tracked user
 
 ---
 

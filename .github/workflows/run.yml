@@ -2,8 +2,7 @@ name: LeetCode Competition Tracker
 
 on:
   schedule:
-    # Runs every 5 minutes (GitHub Actions minimum granularity)
-    # Note: GitHub may delay scheduled runs by a few minutes under high load.
+    # Scheduled GitHub Actions workflow; actual execution timing is best-effort.
     - cron: "*/5 * * * *"
 
   # Allow manual trigger from GitHub Actions UI (useful for testing)
@@ -67,12 +66,12 @@ jobs:
           path: data.json
           key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
 
-  # ── Daily leaderboard job ─────────────────────────────────────────────────
+  # ── Leaderboard job within the scheduled workflow ────────────────────────
   leaderboard:
     name: Daily Leaderboard
     runs-on: ubuntu-latest
 
-    # Run once per day at 20:00 UTC (1:30 AM IST)
+    # Runs when the scheduled workflow reaches the configured leaderboard window.
     if: github.event_name == 'schedule'
 
     steps:
@@ -101,8 +100,7 @@ jobs:
           CHAT_ID:              ${{ secrets.CHAT_ID }}
           MY_USERNAME:          ${{ secrets.MY_USERNAME }}
           OPPONENT_USERNAMES:   ${{ secrets.OPPONENT_USERNAMES }}
-        # Only send leaderboard once (at a specific minute of the day)
-        # 20:00 UTC = the 4th run of the 20th hour (cron runs at :00, :05, ... :55)
+        # The workflow triggers the leaderboard mode only during the configured window.
         run: |
           MINUTE=$(date +%M)
           HOUR=$(date +%H)

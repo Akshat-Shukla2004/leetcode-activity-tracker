@@ -28,7 +28,6 @@ def test_generate_alert_message():
         problem="Two Sum",
         submission_ts=int(time.time()) - 60,
         user_inactive_minutes=20,
-        opponent_streak=4,
     )
 
     assert isinstance(msg, str)
@@ -46,19 +45,16 @@ def test_generate_leaderboard_message():
                 "daily_solves": {
                     today: 3,
                 },
-                "streak": 2,
             },
             "alice": {
                 "daily_solves": {
                     today: 5,
                 },
-                "streak": 6,
             },
             "bob": {
                 "daily_solves": {
                     today: 1,
                 },
-                "streak": 0,
             },
         },
         "history": [],
@@ -75,6 +71,7 @@ def test_generate_leaderboard_message():
     assert "bob" in leaderboard
     assert "You" in leaderboard
     assert "Opponents solved" in leaderboard
+    assert "🔥" not in leaderboard
 
 
 def test_generate_inactivity_nudge():
@@ -101,15 +98,12 @@ def test_leaderboard_is_sorted():
         "users": {
             "me": {
                 "daily_solves": {today: 1},
-                "streak": 0,
             },
             "alice": {
                 "daily_solves": {today: 5},
-                "streak": 0,
             },
             "bob": {
                 "daily_solves": {today: 3},
-                "streak": 0,
             },
         },
         "history": [],

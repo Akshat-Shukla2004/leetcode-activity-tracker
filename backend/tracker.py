@@ -104,11 +104,8 @@ def check_opponent(data: dict, opponent: str) -> int:
 
         storage.set_last_submission_ts(data, opponent, new_ts)
         daily_count = storage.increment_daily_solves(data, opponent)
-        streak = storage.update_streak(data, opponent)
 
-        logger.info(
-            "'%s' daily count: %d | streak: %d", opponent, daily_count, streak
-        )
+        logger.info("'%s' daily count: %d", opponent, daily_count)
 
         user_inactive = _get_user_inactive_minutes(data)
         msg = messages.generate_alert_message(
@@ -116,7 +113,6 @@ def check_opponent(data: dict, opponent: str) -> int:
             problem=problem,
             submission_ts=new_ts,
             user_inactive_minutes=user_inactive,
-            opponent_streak=streak,
         )
 
         success = notifier.send_alert(msg)
@@ -175,7 +171,6 @@ def sync_my_activity(data: dict) -> None:
         )
         storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
         storage.increment_daily_solves(data, config.MY_USERNAME)
-        storage.update_streak(data, config.MY_USERNAME)
 
 
 def run_check_cycle() -> None:

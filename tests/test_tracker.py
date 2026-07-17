@@ -95,11 +95,6 @@ def test_check_opponent_new_submission(mocker):
     )
 
     mocker.patch(
-        "backend.tracker.storage.update_streak",
-        return_value=3,
-    )
-
-    mocker.patch(
         "backend.tracker.messages.generate_alert_message",
         return_value="hello",
     )

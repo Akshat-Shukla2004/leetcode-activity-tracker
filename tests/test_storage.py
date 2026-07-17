@@ -1,4 +1,4 @@
-from datetime import date, timedelta
+from datetime import date
 
 from backend import storage
 
@@ -23,9 +23,10 @@ def test_get_user_auto_creates_user():
     user = storage.get_user(data, "akshat")
 
     assert "akshat" in data["users"]
-    assert user["last_submission_ts"] == 0
-    assert user["streak"] == 0
-    assert user["daily_solves"] == {}
+    assert user == {
+        "last_submission_ts": 0,
+        "daily_solves": {},
+    }
 
 
 def test_set_and_get_last_submission():
@@ -72,37 +73,6 @@ def test_get_daily_solves():
     assert storage.get_daily_solves(data, "akshat") == 7
 
 
-def test_update_streak_first_day():
-    data = {
-        "users": {},
-        "history": [],
-    }
-
-    streak = storage.update_streak(data, "akshat")
-
-    assert streak == 1
-
-
-def test_update_streak_consecutive_days():
-    yesterday = (date.today() - timedelta(days=1)).isoformat()
-
-    data = {
-        "users": {
-            "akshat": {
-                "last_submission_ts": 0,
-                "streak": 5,
-                "last_solve_date": yesterday,
-                "daily_solves": {},
-            }
-        },
-        "history": [],
-    }
-
-    streak = storage.update_streak(data, "akshat")
-
-    assert streak == 6
-
-
 def test_record_history():
     today = date.today().isoformat()
 
@@ -110,8 +80,6 @@ def test_record_history():
         "users": {
             "akshat": {
                 "last_submission_ts": 0,
-                "streak": 0,
-                "last_solve_date": "",
                 "daily_solves": {
                     today: 3,
                 },

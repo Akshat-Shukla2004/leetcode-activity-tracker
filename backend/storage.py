@@ -4,7 +4,6 @@ storage.py - JSON-based persistence layer.
 Handles reading and writing data.json, which stores:
   - last seen submission timestamps per user
   - daily solve counts (user + opponents)
-  - streak data
   - historical daily progress
 """
 
@@ -24,10 +23,16 @@ def _empty_user_record() -> dict:
     """Default state for a newly tracked user."""
     return {
         "last_submission_ts": 0,   # Unix timestamp of last seen accepted submission
-        "streak": 0,               # Consecutive days with ≥1 solve
-        "last_solve_date": "",     # ISO date string of last solve (for streak logic)
         "daily_solves": {},        # { "YYYY-MM-DD": count }
     }
+
+
+def _clean_user_record(record: dict) -> dict:
+    """Return a normalized user record containing only supported fields."""
+    cleaned = _empty_user_record()
+    cleaned["last_submission_ts"] = record.get("last_submission_ts", 0)
+    cleaned["daily_solves"] = record.get("daily_solves", {})
+    return cleaned
 
 
 def _default_data() -> dict:
@@ -50,8 +55,13 @@ def load() -> dict:
         with open(config.DATA_FILE, "r", encoding="utf-8") as fh:
             data = json.load(fh)
         # Ensure top-level keys always exist (forward-compat with old files)
-        data.setdefault("users", {})
+        users = data.setdefault("users", {})
         data.setdefault("history", [])
+        data["users"] = {
+            username: _clean_user_record(record)
+            for username, record in users.items()
+            if isinstance(record, dict)
+        }
         return data
     except (json.JSONDecodeError, OSError) as exc:
         logger.error("Failed to load data.json (%s) — starting fresh.", exc)
@@ -105,40 +115,6 @@ def get_daily_solves(data: dict, username: str, day: str | None = None) -> int:
     """Return solve count for a specific day (default: today)."""
     day = day or date.today().isoformat()
     return get_user(data, username).get("daily_solves", {}).get(day, 0)
-
-
-# ─── Streak tracking ──────────────────────────────────────────────────────────
-
-def update_streak(data: dict, username: str) -> int:
-    """
-    Update the streak counter for username based on today's activity.
-    Call this after recording a new solve.
-    Returns the current streak count.
-    """
-    from datetime import timedelta
-
-    today = date.today().isoformat()
-    yesterday = (date.today() - timedelta(days=1)).isoformat()
-
-    user = get_user(data, username)
-    last_date = user.get("last_solve_date", "")
-
-    if last_date == today:
-        # Already counted today — streak unchanged
-        pass
-    elif last_date == yesterday:
-        # Consecutive day — extend streak
-        user["streak"] = user.get("streak", 0) + 1
-    else:
-        # Gap or first ever solve — reset to 1
-        user["streak"] = 1
-
-    user["last_solve_date"] = today
-    return user["streak"]
-
-
-def get_streak(data: dict, username: str) -> int:
-    return get_user(data, username).get("streak", 0)
 
 
 # ─── History (for future graphs) ─────────────────────────────────────────────
