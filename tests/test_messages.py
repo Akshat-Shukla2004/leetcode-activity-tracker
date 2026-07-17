@@ -91,6 +91,16 @@ def test_generate_alert_escapes_markdown():
     # Opponent name always appears in every template
     assert "john\\_doe" in msg
 
+
+def test_generate_alert_escapes_problem_special_characters():
+    msg = messages.generate_alert_message(
+        opponent="john",
+        problem="Weekly[Contest]_123*",
+        submission_ts=int(time.time()) - 60,
+    )
+
+    assert "Weekly\\[Contest]\\_123\\*" in msg
+
 def test_leaderboard_is_sorted():
     today = messages.date.today().isoformat()
 
