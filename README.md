@@ -1,167 +1,257 @@
-# 🏆 LeetCode Competition Tracker
-[![Backend Tests](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml/badge.svg)](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml)
+# 🚀 LeetCode Competition Bot
 
-A lightweight Python bot that monitors LeetCode activity, detects newly accepted submissions, and sends Telegram alerts through GitHub Actions scheduled workflows.
+> A production-oriented Python bot that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Discord notifications to keep competitive programming groups engaged.
+
+<p align="center">
+
+![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-90%25%20Coverage-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![Ruff](https://img.shields.io/badge/Ruff-Linting-D7FF64?style=for-the-badge)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
+
+</p>
+
+<p align="center">
+
+![Tests](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml/badge.svg)
+
+</p>
 
 ---
 
-## ✨ Features
+# ✨ Features
 
-- Track multiple LeetCode users at once
-- Detect newly accepted submissions from LeetCode
-- Send Telegram notifications for fresh solves
-- Persist state between GitHub Actions runs
-- Support manual workflow triggers for check and leaderboard modes
-- Keep the implementation lightweight and Python-based
+- 👥 Track multiple LeetCode users simultaneously
+- 📬 Real-time Discord webhook notifications for newly accepted submissions
+- 🧠 Uses LeetCode GraphQL API
+- 📊 Detects only new accepted submissions (avoids duplicate alerts)
+- 💾 Persistent state across executions
+- ⚡ Lightweight Python implementation
+- 🧪 Comprehensive Pytest suite (~90% coverage)
+- 🎨 Ruff formatting & linting
+- 🐳 Docker support
+- ⚙️ Automated GitHub Actions workflow
+- 🔧 Manual workflow trigger for testing
 
 ---
 
-## 🗂️ Project Structure
+# 📸 Example Notification
 
+```text
+🎯 John just solved Two Sum (Easy)
+
+⏰ You were inactive for 21 minutes.
+
+Time to get back to solving!
+
+https://leetcode.com/problems/two-sum/
 ```
-leetcode_tracker/
-├── main.py           ← Entry point
-├── config.py         ← Environment config + validation
-├── leetcode.py       ← LeetCode GraphQL API client
-├── tracker.py        ← Core event detection logic
-├── notifier.py       ← Telegram alert system
-├── messages.py       ← Dynamic psychological message engine
-├── storage.py        ← JSON persistence layer
-├── data.json         ← State file (auto-managed)
+
+---
+
+# 🏗️ Architecture
+
+```text
+                ┌────────────────────┐
+                │ GitHub Actions /   │
+                │ Docker Container   │
+                └──────────┬─────────┘
+                           │
+                           ▼
+                ┌────────────────────┐
+                │   Tracker Engine   │
+                └──────────┬─────────┘
+                           │
+            ┌──────────────┴──────────────┐
+            ▼                             ▼
+ ┌──────────────────┐          ┌──────────────────┐
+ │ LeetCode GraphQL │          │ Local State      │
+ │      API         │          │ Persistence      │
+ └──────────────────┘          └──────────────────┘
+            │
+            ▼
+ ┌─────────────────────────────┐
+ │ Duplicate Submission Filter │
+ └──────────────┬──────────────┘
+                ▼
+      ┌─────────────────────┐
+      │ Discord Webhook API │
+      └─────────────────────┘
+```
+
+---
+
+# 📂 Project Structure
+
+```text
+.
+├── backend/
+│   ├── config.py
+│   ├── leetcode.py
+│   ├── messages.py
+│   ├── notifier.py
+│   ├── storage.py
+│   └── tracker.py
+│
+├── tests/
+│
+├── .github/workflows/
+│
+├── Dockerfile
 ├── requirements.txt
-└── .github/
-    └── workflows/
-        └── run.yml   ← GitHub Actions scheduled workflow
+└── main.py
 ```
 
 ---
 
-## ⚡ Quick Start (Local)
+# 🛠 Tech Stack
 
-### 1. Clone & install
+| Category | Technology |
+|----------|------------|
+| Language | Python 3 |
+| Testing | Pytest |
+| Formatting | Ruff |
+| API | LeetCode GraphQL |
+| Notifications | Discord Webhooks |
+| Automation | GitHub Actions |
+| Containerization | Docker |
+
+---
+
+# 🚀 Getting Started
+
+## Clone
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/YOUR_REPO.git
-cd YOUR_REPO
+git clone https://github.com/Akshat-Shukla2004/lc-competition-bot.git
+
+cd lc-competition-bot
+```
+
+---
+
+## Install
+
+```bash
+python -m venv .venv
+
+source .venv/bin/activate
+```
+
+Windows
+
+```powershell
+.venv\Scripts\activate
+```
+
+Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### 2. Set environment variables
+---
 
-```bash
-export BOT_TOKEN="your_telegram_bot_token"
-export CHAT_ID="your_telegram_chat_id"
-export MY_USERNAME="your_leetcode_username"
-export OPPONENT_USERNAMES="opponent1,opponent2"   # comma-separated
+## Configuration
+
+Create a `.env` file
+
+```env
+DISCORD_WEBHOOK_URL=your_webhook
+LEETCODE_USERS=user1,user2,user3
 ```
 
-### 3. Run
+---
+
+## Run
 
 ```bash
-# Normal competition check
 python main.py
-
-# Send a leaderboard summary
-python main.py leaderboard
 ```
 
 ---
 
-## 🤖 Telegram Bot Setup
+# 🐳 Docker
 
-1. Open Telegram → search `@BotFather`
-2. Send `/newbot` → follow prompts → copy the **BOT_TOKEN**
-3. Start a conversation with your new bot
-4. Visit `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
-5. Send yourself a message and grab the **chat_id** from the JSON response
-
----
-
-## 🚀 GitHub Actions Deployment
-
-### 1. Push your code to a GitHub repo
+Build
 
 ```bash
-git init
-git add .
-git commit -m "Initial commit"
-git remote add origin https://github.com/YOUR_USERNAME/YOUR_REPO.git
-git push -u origin main
+docker build -t lc-competition-bot .
 ```
 
-### 2. Add Secrets
+Run
 
-Go to your repo → **Settings** → **Secrets and variables** → **Actions** → **New repository secret**
+```bash
+docker run --rm \
+-e DISCORD_WEBHOOK_URL=your_webhook \
+-e LEETCODE_USERS=user1,user2,user3 \
+lc-competition-bot
+```
 
-Add these secrets:
-
-| Secret Name          | Value                              |
-|----------------------|------------------------------------|
-| `BOT_TOKEN`          | Your Telegram bot token            |
-| `CHAT_ID`            | Your Telegram chat ID              |
-| `MY_USERNAME`        | Your LeetCode username             |
-| `OPPONENT_USERNAMES` | `opponent1` or `alice,bob`        |
-
-### 3. Enable Actions
-
-Go to **Actions** tab → click **Enable GitHub Actions**
-
-The project runs automatically through GitHub Actions scheduled workflows. Actual execution timing depends on GitHub Actions scheduling. You can also trigger it manually via the **workflow_dispatch** button.
-
-> ⚠️ GitHub scheduled workflows are best-effort and may run later than the configured schedule.
+Docker provides an isolated and reproducible runtime environment, making deployment consistent across development and production systems.
 
 ---
 
-## 🧠 How It Works
+# 🧪 Testing
 
-### Event-based detection
-- Fetches the latest **accepted** submission per opponent
-- Compares timestamp to last-seen in `data.json`
-- Only fires an alert if the timestamp is **newer** — never on count changes
-- Zero duplicate alerts
+Run the complete test suite
 
-### Telegram alerts
-- Each new accepted solve sends one notification with the full message body
-- No bait or decoy messages are sent
+```bash
+pytest
+```
 
-### Message intensity scaling
-| User inactive | Message tier |
-|---|---|
-| < 15 min | Standard rotation (all categories) |
-| 15–59 min | Aggressive + Time urgency |
-| ≥ 60 min | Nuclear tier via inactivity threshold |
+Run with coverage
 
-### State persistence
-GitHub Actions `cache` stores `data.json` between runs so state survives across executions.
+```bash
+coverage run -m pytest
+coverage report -m
+```
 
----
+Lint
 
-## 📊 Leaderboard Summary
+```bash
+ruff check .
+```
 
-Available through the `leaderboard` mode. Shows:
-- Today's solve count for you and each opponent
-- Ranked by daily solves
-- Persistent solve totals per tracked user
+Format
+
+```bash
+ruff format .
+```
 
 ---
 
-## 🔧 Configuration
+# ⚙️ GitHub Actions
 
-All configuration is in `config.py` via environment variables.
+The repository includes an automated workflow that:
 
-| Variable | Description | Default |
-|---|---|---|
-| `BOT_TOKEN` | Telegram bot token | required |
-| `CHAT_ID` | Telegram chat ID | required |
-| `MY_USERNAME` | Your LeetCode username | `your_username` |
-| `OPPONENT_USERNAMES` | Optional extra opponent usernames to add on top of the built-in list | optional |
-| `INACTIVITY_ESCALATION_MINUTES` | Minutes before nuclear messages | `30` (in config.py) |
+- installs dependencies
+- runs Ruff linting
+- executes the full Pytest suite
+- validates code quality before changes are merged
+
+Scheduled workflows can also be used to automatically check for new submissions. Actual execution timing depends on GitHub Actions scheduling.
 
 ---
 
-## 💡 Tips
+# 📈 Future Improvements
 
-- The `data.json` is automatically managed — don't edit it manually unless resetting state
-- To **reset** an opponent's baseline (so next run picks up their latest solve fresh), delete their entry from `data.json`
-- To add a new opponent, update the built-in list in `config.py` or append extra usernames via `OPPONENT_USERNAMES` — state is auto-created
-- Runs are completely free within GitHub's generous free tier (2,000 minutes/month for public repos; unlimited for public)
+- PostgreSQL persistence for multi-instance deployments
+- Redis caching layer
+- Configurable notification templates
+- Web dashboard
+- Multiple notification providers (Slack, Telegram, Discord)
+
+---
+
+# 🤝 Contributing
+
+Contributions, issues, and feature requests are welcome.
+
+Feel free to fork the repository and submit a pull request.
+
+---
+
+# 📄 License
+
+This project is licensed under the MIT License.
