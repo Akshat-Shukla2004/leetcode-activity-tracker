@@ -27,6 +27,8 @@ def test_generate_alert_message():
         opponent="john",
         problem="Two Sum",
         submission_ts=int(time.time()) - 60,
+        problem_slug="two-sum",
+        problem_difficulty="Easy",
         user_inactive_minutes=20,
     )
 
@@ -34,6 +36,8 @@ def test_generate_alert_message():
     assert len(msg) > 0
     assert "john" in msg
     assert "Two Sum" in msg
+    assert "Easy" in msg
+    assert "leetcode.com/problems/two-sum/" in msg
 
 
 def test_generate_leaderboard_message():
@@ -97,9 +101,11 @@ def test_generate_alert_escapes_problem_special_characters():
         opponent="john",
         problem="Weekly[Contest]_123*",
         submission_ts=int(time.time()) - 60,
+        problem_slug="weekly-contest-123",
     )
 
     assert "Weekly\\[Contest]\\_123\\*" in msg
+    assert "leetcode.com/problems/weekly-contest-123/" in msg
 
 def test_leaderboard_is_sorted():
     today = messages.date.today().isoformat()

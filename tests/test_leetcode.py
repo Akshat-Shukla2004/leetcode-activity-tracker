@@ -178,6 +178,41 @@ def test_get_accepted_since_filters_duplicate_timestamps(mocker):
     assert [item["timestamp"] for item in result] == [20]
 
 
+def test_get_question_details(mocker):
+    response = MockResponse(
+        {
+            "data": {
+                "question": {
+                    "title": "Two Sum",
+                    "titleSlug": "two-sum",
+                    "difficulty": "Easy",
+                    "questionFrontendId": "1",
+                }
+            }
+        }
+    )
+
+    mocker.patch("backend.leetcode.requests.post", return_value=response)
+
+    details = leetcode.get_question_details("two-sum")
+
+    assert details == {
+        "title": "Two Sum",
+        "titleSlug": "two-sum",
+        "difficulty": "Easy",
+        "questionFrontendId": "1",
+    }
+
+
+def test_get_question_details_returns_none_on_failure(mocker):
+    mocker.patch(
+        "backend.leetcode.requests.post",
+        side_effect=requests.exceptions.RequestException,
+    )
+
+    assert leetcode.get_question_details("two-sum") is None
+
+
 def test_seconds_ago():
     now = leetcode.time.time()
 

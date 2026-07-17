@@ -67,6 +67,8 @@ def generate_alert_message(
     opponent: str,
     problem: str,
     submission_ts: int,
+    problem_slug: str = "",
+    problem_difficulty: str = "",
     user_inactive_minutes: int = 0,
 ) -> str:
     """
@@ -76,6 +78,8 @@ def generate_alert_message(
         opponent:               Opponent's username.
         problem:                Problem title they solved.
         submission_ts:          Unix timestamp of their submission.
+        problem_slug:           LeetCode slug for the solved problem.
+        problem_difficulty:     Optional problem difficulty if available.
         user_inactive_minutes:  How many minutes the user has been inactive.
 
     Returns:
@@ -99,7 +103,17 @@ def generate_alert_message(
         pool = _AGGRESSIVE + _SMART_PRESSURE + _TIME_URGENCY
 
     template = random.choice(pool)
-    return _format(template, **kwargs)
+    body = _format(template, **kwargs)
+
+    details = [f"*Problem:* {_escape_telegram_markdown(problem)}"]
+    if problem_difficulty:
+        details.append(f"*Difficulty:* {_escape_telegram_markdown(problem_difficulty)}")
+
+    if problem_slug:
+        problem_url = f"https://leetcode.com/problems/{problem_slug}/"
+        details.append(f"*URL:* {problem_url}")
+
+    return body + "\n\n" + "\n".join(details)
 
 
 def generate_leaderboard_message(

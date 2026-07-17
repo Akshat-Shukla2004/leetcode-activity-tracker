@@ -27,6 +27,17 @@ query recentSubmissions($username: String!, $limit: Int!) {
 }
 """
 
+QUESTION_DETAILS_QUERY = """
+query questionDetails($titleSlug: String!) {
+    question(titleSlug: $titleSlug) {
+        title
+        titleSlug
+        difficulty
+        questionFrontendId
+    }
+}
+"""
+
 
 def fetch_accepted_submissions(username: str, limit: int = 20) -> list[dict]:
     """
@@ -122,6 +133,58 @@ def get_latest_accepted(username: str) -> Optional[dict]:
         return None
     # Submissions come back in reverse-chronological order; first is newest.
     return max(subs, key=lambda s: s["timestamp"])
+
+
+def get_question_details(title_slug: str) -> Optional[dict]:
+    """
+    Fetch extra metadata for a LeetCode problem when it is available.
+
+    Returns a dict with title, titleSlug, difficulty, and questionFrontendId,
+    or None if the lookup fails.
+    """
+    if not title_slug:
+        return None
+
+    payload = {
+        "query": QUESTION_DETAILS_QUERY,
+        "variables": {"titleSlug": title_slug},
+        "operationName": "questionDetails",
+    }
+
+    headers = {
+        "Content-Type": "application/json",
+        "Referer": "https://leetcode.com",
+    }
+
+    try:
+        response = requests.post(
+            LEETCODE_GRAPHQL_URL,
+            json=payload,
+            headers=headers,
+            timeout=15,
+        )
+        response.raise_for_status()
+        data = response.json()
+    except requests.exceptions.Timeout:
+        logger.error("LeetCode question lookup timed out for '%s'", title_slug)
+        return None
+    except requests.exceptions.RequestException as exc:
+        logger.error("LeetCode question lookup failed for '%s': %s", title_slug, exc)
+        return None
+    except ValueError:
+        logger.error("Failed to parse question metadata for '%s'", title_slug)
+        return None
+
+    question = data.get("data", {}).get("question")
+    if not isinstance(question, dict):
+        return None
+
+    return {
+        "title": question.get("title", ""),
+        "titleSlug": question.get("titleSlug", title_slug),
+        "difficulty": question.get("difficulty", ""),
+        "questionFrontendId": question.get("questionFrontendId", ""),
+    }
 
 
 def seconds_ago(timestamp: int) -> int:

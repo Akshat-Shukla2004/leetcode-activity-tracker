@@ -95,6 +95,7 @@ def test_check_opponent_new_submission(mocker):
         return_value=[
             {
                 "title": "Two Sum",
+                "titleSlug": "two-sum",
                 "timestamp": 200,
             }
         ],
@@ -111,6 +112,13 @@ def test_check_opponent_new_submission(mocker):
     )
 
     mocker.patch(
+        "backend.tracker.leetcode.get_question_details",
+        return_value={
+            "difficulty": "Easy",
+        },
+    )
+
+    alert = mocker.patch(
         "backend.tracker.messages.generate_alert_message",
         return_value="hello",
     )
@@ -128,6 +136,14 @@ def test_check_opponent_new_submission(mocker):
 
     assert result == 1
     send.assert_called_once()
+    alert.assert_called_once_with(
+        opponent="alice",
+        problem="Two Sum",
+        submission_ts=200,
+        problem_slug="two-sum",
+        problem_difficulty="Easy",
+        user_inactive_minutes=0,
+    )
 
 
 def test_check_opponent_duplicate_submission_is_ignored(mocker):

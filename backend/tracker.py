@@ -107,11 +107,20 @@ def check_opponent(data: dict, opponent: str) -> int:
 
         logger.info("'%s' daily count: %d", opponent, daily_count)
 
+        problem_slug = submission.get("titleSlug", "")
+        problem_difficulty = ""
+        if problem_slug:
+            details = leetcode.get_question_details(problem_slug)
+            if details:
+                problem_difficulty = details.get("difficulty", "")
+
         user_inactive = _get_user_inactive_minutes(data)
         msg = messages.generate_alert_message(
             opponent=opponent,
             problem=problem,
             submission_ts=new_ts,
+            problem_slug=problem_slug,
+            problem_difficulty=problem_difficulty,
             user_inactive_minutes=user_inactive,
         )
 
