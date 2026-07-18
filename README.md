@@ -1,6 +1,6 @@
 # 🚀 LeetCode Competition Bot
 
-> A production-oriented Python bot that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Discord notifications to keep competitive programming groups engaged.
+> A production-oriented Python bot that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Telegram notifications to keep competitive programming groups engaged.
 
 <p align="center">
 
@@ -22,10 +22,10 @@
 # ✨ Features
 
 - 👥 Track multiple LeetCode users simultaneously
-- 📬 Real-time Discord webhook notifications for newly accepted submissions
-- 🧠 Uses LeetCode GraphQL API
-- 📊 Detects only new accepted submissions (avoids duplicate alerts)
-- 💾 Persistent state across executions
+- 📬 Real-time Telegram notifications for newly accepted submissions
+- 🧠 Uses the LeetCode GraphQL API
+- 📊 Detects only newly accepted submissions (prevents duplicate alerts)
+- 💾 Persistent local state between executions
 - ⚡ Lightweight Python implementation
 - 🧪 Comprehensive Pytest suite (~90% coverage)
 - 🎨 Ruff formatting & linting
@@ -52,31 +52,31 @@ https://leetcode.com/problems/two-sum/
 # 🏗️ Architecture
 
 ```text
-                ┌────────────────────┐
-                │ GitHub Actions /   │
-                │ Docker Container   │
-                └──────────┬─────────┘
-                           │
-                           ▼
-                ┌────────────────────┐
-                │   Tracker Engine   │
-                └──────────┬─────────┘
-                           │
-            ┌──────────────┴──────────────┐
-            ▼                             ▼
- ┌──────────────────┐          ┌──────────────────┐
- │ LeetCode GraphQL │          │ Local State      │
- │      API         │          │ Persistence      │
- └──────────────────┘          └──────────────────┘
-            │
-            ▼
- ┌─────────────────────────────┐
- │ Duplicate Submission Filter │
- └──────────────┬──────────────┘
-                ▼
-      ┌─────────────────────┐
-      │ Discord Webhook API │
-      └─────────────────────┘
+                 ┌────────────────────┐
+                 │ GitHub Actions /   │
+                 │ Docker Container   │
+                 └──────────┬─────────┘
+                            │
+                            ▼
+                 ┌────────────────────┐
+                 │   Tracker Engine   │
+                 └──────────┬─────────┘
+                            │
+             ┌──────────────┴──────────────┐
+             ▼                             ▼
+  ┌──────────────────┐          ┌──────────────────┐
+  │ LeetCode GraphQL │          │ Local State      │
+  │       API        │          │ (data.json)      │
+  └──────────────────┘          └──────────────────┘
+             │
+             ▼
+  ┌─────────────────────────────┐
+  │ Duplicate Submission Filter │
+  └──────────────┬──────────────┘
+                 ▼
+      ┌────────────────────────┐
+      │ Telegram Bot API       │
+      └────────────────────────┘
 ```
 
 ---
@@ -86,6 +86,7 @@ https://leetcode.com/problems/two-sum/
 ```text
 .
 ├── backend/
+│   ├── __init__.py
 │   ├── config.py
 │   ├── leetcode.py
 │   ├── messages.py
@@ -95,11 +96,13 @@ https://leetcode.com/problems/two-sum/
 │
 ├── tests/
 │
-├── .github/workflows/
+├── .github/
+│   └── workflows/
 │
 ├── Dockerfile
 ├── requirements.txt
-└── main.py
+├── main.py
+└── README.md
 ```
 
 ---
@@ -107,14 +110,24 @@ https://leetcode.com/problems/two-sum/
 # 🛠 Tech Stack
 
 | Category | Technology |
-|----------|------------|
-| Language | Python 3 |
-| Testing | Pytest |
-| Formatting | Ruff |
+|-----------|------------|
+| Language | Python 3.11 |
 | API | LeetCode GraphQL |
-| Notifications | Discord Webhooks |
+| Notifications | Telegram Bot API |
+| Testing | Pytest |
+| Linting | Ruff |
 | Automation | GitHub Actions |
 | Containerization | Docker |
+
+---
+
+# ✅ Quality Assurance
+
+- ~90% automated test coverage using Pytest
+- Ruff linting and formatting
+- GitHub Actions continuous integration
+- Dockerized runtime for reproducible deployments
+- Modular architecture with separated tracking, storage, notification, and messaging components
 
 ---
 
@@ -130,7 +143,9 @@ cd lc-competition-bot
 
 ---
 
-## Install
+## Create a Virtual Environment
+
+Linux/macOS
 
 ```bash
 python -m venv .venv
@@ -141,10 +156,14 @@ source .venv/bin/activate
 Windows
 
 ```powershell
+python -m venv .venv
+
 .venv\Scripts\activate
 ```
 
-Install dependencies
+---
+
+## Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -154,12 +173,20 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Create a `.env` file
+Create a `.env` file.
 
 ```env
-DISCORD_WEBHOOK_URL=your_webhook
-LEETCODE_USERS=user1,user2,user3
+BOT_TOKEN=your_telegram_bot_token
+CHAT_ID=your_telegram_chat_id
+
+# Optional
+MY_USERNAME=AkshatPrep
+OPPONENT_USERNAMES=user1,user2,user3
 ```
+
+The application validates `BOT_TOKEN` and `CHAT_ID` during startup.
+
+`MY_USERNAME` and `OPPONENT_USERNAMES` are optional and fall back to the defaults defined in `backend/config.py`.
 
 ---
 
@@ -171,9 +198,9 @@ python main.py
 
 ---
 
-# Docker
+# 🐳 Docker
 
-Docker provides a reproducible runtime environment, so the bot behaves the same way in local testing and production deployments.
+Docker provides an isolated and reproducible runtime environment, ensuring the bot behaves consistently across development and production systems.
 
 ## Build
 
@@ -181,41 +208,51 @@ Docker provides a reproducible runtime environment, so the bot behaves the same 
 docker build -t lc-competition-bot .
 ```
 
-## Run
+## Run (Linux/macOS)
 
 ```bash
 docker run --rm \
-      -e BOT_TOKEN=your_telegram_bot_token \
-      -e CHAT_ID=your_telegram_chat_id \
-      -e MY_USERNAME=your_leetcode_username \
-      -e OPPONENT_USERNAMES=opponent1,opponent2 \
-      lc-competition-bot
+-v "$(pwd)/data.json:/app/data.json" \
+--env-file .env \
+lc-competition-bot
 ```
+
+## Run (Windows PowerShell)
+
+```powershell
+docker run --rm `
+-v "${PWD}/data.json:/app/data.json" `
+--env-file .env `
+lc-competition-bot
+```
+
+The bind mount ensures that `data.json` persists between container runs so the bot remembers previously processed submissions.
 
 ---
 
 # 🧪 Testing
 
-Run the complete test suite
+Run the complete test suite:
 
 ```bash
 pytest
 ```
 
-Run with coverage
+Run with coverage:
 
 ```bash
 coverage run -m pytest
+
 coverage report -m
 ```
 
-Lint
+Run Ruff linting:
 
 ```bash
 ruff check .
 ```
 
-Format
+Format the codebase:
 
 ```bash
 ruff format .
@@ -225,24 +262,24 @@ ruff format .
 
 # ⚙️ GitHub Actions
 
-The repository includes an automated workflow that:
+The repository includes an automated GitHub Actions workflow that:
 
-- installs dependencies
-- runs Ruff linting
-- executes the full Pytest suite
-- validates code quality before changes are merged
+- Installs project dependencies
+- Runs Ruff linting
+- Executes the complete Pytest suite
+- Validates code quality before changes are merged
 
-Scheduled workflows can also be used to automatically check for new submissions. Actual execution timing depends on GitHub Actions scheduling.
+The project can also be executed on a scheduled GitHub Actions workflow to periodically check for new accepted submissions. Since GitHub Actions uses best-effort scheduling, actual execution timing may vary.
 
 ---
 
 # 📈 Future Improvements
 
 - PostgreSQL persistence for multi-instance deployments
-- Redis caching layer
 - Configurable notification templates
-- Web dashboard
-- Multiple notification providers (Slack, Telegram, Discord)
+- Support for additional notification providers
+- Web dashboard for user management
+- REST API for managing tracked users
 
 ---
 
@@ -250,10 +287,18 @@ Scheduled workflows can also be used to automatically check for new submissions.
 
 Contributions, issues, and feature requests are welcome.
 
-Feel free to fork the repository and submit a pull request.
+If you'd like to contribute:
+
+1. Fork the repository.
+2. Create a feature branch.
+3. Make your changes.
+4. Run the test suite and Ruff checks.
+5. Open a Pull Request.
+
+Please ensure all tests pass before submitting changes.
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License.
+This project is licensed under the MIT License. See the `LICENSE` file for more information.
