@@ -1,7 +1,7 @@
 FROM python:3.11.13-slim
 
-LABEL org.opencontainers.image.title="LeetCode Competition Bot"
-LABEL org.opencontainers.image.description="Tracks LeetCode submissions and sends Discord notifications."
+LABEL org.opencontainers.image.title="LeetCode Activity Tracker"
+LABEL org.opencontainers.image.description="Production-oriented Python application that tracks LeetCode submissions and sends Telegram notifications."
 LABEL org.opencontainers.image.licenses="MIT"
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
