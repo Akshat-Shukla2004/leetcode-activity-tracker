@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 def run_leaderboard() -> None:
     """Load state and push the daily leaderboard to Telegram."""
     data = storage.load()
-    msg  = messages.generate_leaderboard_message(
+    msg = messages.generate_leaderboard_message(
         data=data,
         my_username=config.MY_USERNAME,
         opponent_usernames=config.OPPONENT_USERNAMES,

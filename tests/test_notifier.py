@@ -32,10 +32,13 @@ def test_send_raw_success(mocker):
         return_value=response,
     )
 
-    assert notifier._send_raw(
-        "Hello",
-        disable_notification=False,
-    ) is True
+    assert (
+        notifier._send_raw(
+            "Hello",
+            disable_notification=False,
+        )
+        is True
+    )
 
 
 def test_send_raw_http_failure(mocker):
@@ -44,10 +47,13 @@ def test_send_raw_http_failure(mocker):
         side_effect=requests.RequestException,
     )
 
-    assert notifier._send_raw(
-        "Hello",
-        disable_notification=False,
-    ) is False
+    assert (
+        notifier._send_raw(
+            "Hello",
+            disable_notification=False,
+        )
+        is False
+    )
 
 
 def test_send_raw_invalid_json(mocker):
@@ -63,10 +69,13 @@ def test_send_raw_invalid_json(mocker):
         return_value=BadResponse(),
     )
 
-    assert notifier._send_raw(
-        "Hello",
-        disable_notification=False,
-    ) is False
+    assert (
+        notifier._send_raw(
+            "Hello",
+            disable_notification=False,
+        )
+        is False
+    )
 
 
 def test_send_raw_api_failure(mocker):
@@ -77,10 +86,13 @@ def test_send_raw_api_failure(mocker):
         return_value=response,
     )
 
-    assert notifier._send_raw(
-        "Hello",
-        disable_notification=False,
-    ) is False
+    assert (
+        notifier._send_raw(
+            "Hello",
+            disable_notification=False,
+        )
+        is False
+    )
 
 
 def test_send_alert_calls_send_raw(mocker):

@@ -98,9 +98,7 @@ def check_opponent(data: dict, opponent: str) -> int:
     for submission in fresh_submissions:
         new_ts = submission["timestamp"]
         problem = submission["title"]
-        logger.info(
-            "NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts
-        )
+        logger.info("NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts)
 
         storage.set_last_submission_ts(data, opponent, new_ts)
         daily_count = storage.increment_daily_solves(data, opponent)
@@ -150,9 +148,7 @@ def check_user_inactivity(data: dict) -> None:
         return
 
     if inactive_min >= config.INACTIVITY_ESCALATION_MINUTES:
-        logger.info(
-            "User inactive for %d min — sending nudge.", inactive_min
-        )
+        logger.info("User inactive for %d min — sending nudge.", inactive_min)
         nudge = messages.generate_inactivity_nudge(inactive_min)
         notifier.send_silent(nudge)
 
@@ -166,18 +162,18 @@ def sync_my_activity(data: dict) -> None:
     if not latest:
         return
 
-    new_ts  = latest["timestamp"]
+    new_ts = latest["timestamp"]
     last_ts = storage.get_last_submission_ts(data, config.MY_USERNAME)
 
     if last_ts == 0:
-        logger.info("Initialized my baseline at ts=%d (no retroactive self-count).", new_ts)
+        logger.info(
+            "Initialized my baseline at ts=%d (no retroactive self-count).", new_ts
+        )
         storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
         return
 
     if new_ts > last_ts:
-        logger.info(
-            "My new submission: '%s' at ts=%d", latest["title"], new_ts
-        )
+        logger.info("My new submission: '%s' at ts=%d", latest["title"], new_ts)
         storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
         storage.increment_daily_solves(data, config.MY_USERNAME)
 

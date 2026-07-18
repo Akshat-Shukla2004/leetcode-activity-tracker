@@ -107,6 +107,7 @@ def test_generate_alert_escapes_problem_special_characters():
     assert "Weekly\\[Contest]\\_123\\*" in msg
     assert "leetcode.com/problems/weekly-contest-123/" in msg
 
+
 def test_leaderboard_is_sorted():
     today = messages.date.today().isoformat()
 

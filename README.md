@@ -171,24 +171,26 @@ python main.py
 
 ---
 
-# 🐳 Docker
+# Docker
 
-Build
+Docker provides a reproducible runtime environment, so the bot behaves the same way in local testing and production deployments.
+
+## Build
 
 ```bash
 docker build -t lc-competition-bot .
 ```
 
-Run
+## Run
 
 ```bash
 docker run --rm \
--e DISCORD_WEBHOOK_URL=your_webhook \
--e LEETCODE_USERS=user1,user2,user3 \
-lc-competition-bot
+      -e BOT_TOKEN=your_telegram_bot_token \
+      -e CHAT_ID=your_telegram_chat_id \
+      -e MY_USERNAME=your_leetcode_username \
+      -e OPPONENT_USERNAMES=opponent1,opponent2 \
+      lc-competition-bot
 ```
-
-Docker provides an isolated and reproducible runtime environment, making deployment consistent across development and production systems.
 
 ---
 

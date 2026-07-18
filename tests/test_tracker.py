@@ -40,9 +40,7 @@ def test_check_opponent_initializes_baseline(mocker):
         },
     )
 
-    set_ts = mocker.patch(
-        "backend.tracker.storage.set_last_submission_ts"
-    )
+    set_ts = mocker.patch("backend.tracker.storage.set_last_submission_ts")
 
     result = tracker.check_opponent(data, "alice")
 
@@ -176,9 +174,7 @@ def test_check_user_inactivity_no_baseline(mocker):
         return_value=0,
     )
 
-    send = mocker.patch(
-        "backend.tracker.notifier.send_silent"
-    )
+    send = mocker.patch("backend.tracker.notifier.send_silent")
 
     tracker.check_user_inactivity(data)
 
@@ -201,9 +197,7 @@ def test_sync_my_activity_first_run(mocker):
         return_value=0,
     )
 
-    set_ts = mocker.patch(
-        "backend.tracker.storage.set_last_submission_ts"
-    )
+    set_ts = mocker.patch("backend.tracker.storage.set_last_submission_ts")
 
     tracker.sync_my_activity(data)
 
@@ -223,9 +217,7 @@ def test_check_user_inactivity_sends_nudge_when_threshold_exceeded(mocker):
         return_value=120,
     )
 
-    send = mocker.patch(
-        "backend.tracker.notifier.send_silent"
-    )
+    send = mocker.patch("backend.tracker.notifier.send_silent")
 
     tracker.check_user_inactivity(data)
 

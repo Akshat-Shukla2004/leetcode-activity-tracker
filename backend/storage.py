@@ -19,11 +19,12 @@ logger = logging.getLogger(__name__)
 
 # ─── Schema helpers ───────────────────────────────────────────────────────────
 
+
 def _empty_user_record() -> dict:
     """Default state for a newly tracked user."""
     return {
-        "last_submission_ts": 0,   # Unix timestamp of last seen accepted submission
-        "daily_solves": {},        # { "YYYY-MM-DD": count }
+        "last_submission_ts": 0,  # Unix timestamp of last seen accepted submission
+        "daily_solves": {},  # { "YYYY-MM-DD": count }
     }
 
 
@@ -38,12 +39,13 @@ def _clean_user_record(record: dict) -> dict:
 def _default_data() -> dict:
     """Scaffold for a brand-new data.json."""
     return {
-        "users": {},      # username → user_record
-        "history": [],    # [ { "date": "YYYY-MM-DD", "solves": { username: count } } ]
+        "users": {},  # username → user_record
+        "history": [],  # [ { "date": "YYYY-MM-DD", "solves": { username: count } } ]
     }
 
 
 # ─── Load / Save ─────────────────────────────────────────────────────────────
+
 
 def load() -> dict:
     """Load data.json; return default scaffold if file is missing or corrupt."""
@@ -82,6 +84,7 @@ def save(data: dict) -> None:
 
 # ─── Per-user helpers ─────────────────────────────────────────────────────────
 
+
 def get_user(data: dict, username: str) -> dict:
     """Return (and auto-create) the state record for a username."""
     if username not in data["users"]:
@@ -98,6 +101,7 @@ def get_last_submission_ts(data: dict, username: str) -> int:
 
 
 # ─── Daily solve tracking ─────────────────────────────────────────────────────
+
 
 def increment_daily_solves(data: dict, username: str) -> int:
     """
@@ -118,6 +122,7 @@ def get_daily_solves(data: dict, username: str, day: str | None = None) -> int:
 
 
 # ─── History (for future graphs) ─────────────────────────────────────────────
+
 
 def record_history(data: dict, usernames: list[str]) -> None:
     """

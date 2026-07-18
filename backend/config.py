@@ -7,7 +7,7 @@ import os
 
 # ─── Telegram ────────────────────────────────────────────────────────────────
 BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "")
-CHAT_ID: str   = os.environ.get("CHAT_ID", "")
+CHAT_ID: str = os.environ.get("CHAT_ID", "")
 
 # ─── LeetCode Usernames ───────────────────────────────────────────────────────
 _DEFAULT_MY_USERNAME = "AkshatPrep"
@@ -40,7 +40,9 @@ MY_USERNAME = os.environ.get("MY_USERNAME", "").strip() or _DEFAULT_MY_USERNAME
 _opponents_env = os.environ.get("OPPONENT_USERNAMES", "").strip()
 if _opponents_env:
     _env_opponents = [u.strip() for u in _opponents_env.split(",") if u.strip()]
-    OPPONENT_USERNAMES = list(dict.fromkeys(_DEFAULT_OPPONENT_USERNAMES + _env_opponents))
+    OPPONENT_USERNAMES = list(
+        dict.fromkeys(_DEFAULT_OPPONENT_USERNAMES + _env_opponents)
+    )
 else:
     OPPONENT_USERNAMES = _DEFAULT_OPPONENT_USERNAMES
 
@@ -53,6 +55,7 @@ INACTIVITY_ESCALATION_MINUTES: int = 60
 
 # Ignore opponent submissions older than this (prevents old/baseline spam)
 MAX_ALERT_AGE_HOURS: int = 24
+
 
 # ─── Validation ───────────────────────────────────────────────────────────────
 def validate() -> None:

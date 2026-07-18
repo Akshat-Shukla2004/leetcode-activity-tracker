@@ -88,9 +88,9 @@ def generate_alert_message(
     minutes = max(0, int((time.time() - submission_ts) / 60))
 
     kwargs = {
-        "opponent":      _escape_telegram_markdown(opponent),
-        "problem":       _escape_telegram_markdown(problem),
-        "minutes":       minutes,
+        "opponent": _escape_telegram_markdown(opponent),
+        "problem": _escape_telegram_markdown(problem),
+        "minutes": minutes,
         "user_inactive": user_inactive_minutes,
     }
 
@@ -141,7 +141,11 @@ def generate_leaderboard_message(
     entries = []
     for uname in all_users:
         solves = get_daily_solves(data, uname)
-        label = "🧑 You" if uname == my_username else f"😈 {_escape_telegram_markdown(uname)}"
+        label = (
+            "🧑 You"
+            if uname == my_username
+            else f"😈 {_escape_telegram_markdown(uname)}"
+        )
         entries.append((solves, label))
 
     # Sort by descending solve count

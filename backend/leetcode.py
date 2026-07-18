@@ -82,28 +82,25 @@ def fetch_accepted_submissions(username: str, limit: int = 20) -> list[dict]:
         return []
 
     # Navigate the GraphQL response safely
-    submissions = (
-        data.get("data", {})
-            .get("recentSubmissionList") or []
-    )
+    submissions = data.get("data", {}).get("recentSubmissionList") or []
 
     # Filter to accepted only and normalize the timestamp to int
     accepted = []
     for sub in submissions:
         if sub.get("statusDisplay") == "Accepted":
             try:
-                accepted.append({
-                    "title":     sub["title"],
-                    "titleSlug": sub.get("titleSlug", ""),
-                    "timestamp": int(sub["timestamp"]),
-                    "lang":      sub.get("lang", ""),
-                })
+                accepted.append(
+                    {
+                        "title": sub["title"],
+                        "titleSlug": sub.get("titleSlug", ""),
+                        "timestamp": int(sub["timestamp"]),
+                        "lang": sub.get("lang", ""),
+                    }
+                )
             except (KeyError, ValueError) as exc:
                 logger.warning("Skipping malformed submission entry: %s", exc)
 
-    logger.info(
-        "Fetched %d accepted submission(s) for '%s'", len(accepted), username
-    )
+    logger.info("Fetched %d accepted submission(s) for '%s'", len(accepted), username)
     return accepted
 
 

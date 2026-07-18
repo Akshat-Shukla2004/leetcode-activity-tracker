@@ -80,10 +80,7 @@ def test_increment_daily_solves():
 
     today = date.today().isoformat()
 
-    assert (
-        data["users"]["akshat"]["daily_solves"][today]
-        == 2
-    )
+    assert data["users"]["akshat"]["daily_solves"][today] == 2
 
 
 def test_get_daily_solves():
