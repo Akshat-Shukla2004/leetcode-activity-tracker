@@ -1,6 +1,6 @@
-# 🚀 LeetCode Competition Bot
+# 🚀 LeetCode Activity Tracker
 
-> A production-oriented Python bot that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Telegram notifications to keep competitive programming groups engaged.
+> A production-oriented Python application that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Telegram notifications to keep competitive programming groups engaged.
 
 <p align="center">
 
@@ -13,7 +13,7 @@
 
 <p align="center">
 
-![Tests](https://github.com/Akshat-Shukla2004/lc-competition-bot/actions/workflows/tests.yml/badge.svg)
+![Tests](https://github.com/Akshat-Shukla2004/leetcode-activity-tracker/actions/workflows/tests.yml/badge.svg)
 
 </p>
 
@@ -22,16 +22,16 @@
 # ✨ Features
 
 - 👥 Track multiple LeetCode users simultaneously
-- 📬 Real-time Telegram notifications for newly accepted submissions
-- 🧠 Uses the LeetCode GraphQL API
-- 📊 Detects only newly accepted submissions (prevents duplicate alerts)
-- 💾 Persistent local state between executions
-- ⚡ Lightweight Python implementation
-- 🧪 Comprehensive Pytest suite (~90% coverage)
-- 🎨 Ruff formatting & linting
-- 🐳 Docker support
+- 📬 Send real-time Telegram notifications for newly accepted submissions
+- 🧠 Integrates with the LeetCode GraphQL API
+- 📊 Detects only newly accepted submissions to prevent duplicate alerts
+- 💾 Maintains persistent local state across executions
+- ⚡ Lightweight, modular Python architecture
+- 🧪 Comprehensive Pytest suite (~90% test coverage)
+- 🎨 Ruff formatting and linting
+- 🐳 Docker support for reproducible deployments
 - ⚙️ Automated GitHub Actions workflow
-- 🔧 Manual workflow trigger for testing
+- 🔧 Manual workflow trigger for testing and debugging
 
 ---
 
@@ -101,13 +101,14 @@ https://leetcode.com/problems/two-sum/
 │
 ├── Dockerfile
 ├── requirements.txt
-├── main.py
-└── README.md
+├── LICENSE
+├── README.md
+└── main.py
 ```
 
 ---
 
-# 🛠 Tech Stack
+# 🛠️ Tech Stack
 
 | Category | Technology |
 |-----------|------------|
@@ -115,7 +116,7 @@ https://leetcode.com/problems/two-sum/
 | API | LeetCode GraphQL |
 | Notifications | Telegram Bot API |
 | Testing | Pytest |
-| Linting | Ruff |
+| Code Quality | Ruff |
 | Automation | GitHub Actions |
 | Containerization | Docker |
 
@@ -124,28 +125,28 @@ https://leetcode.com/problems/two-sum/
 # ✅ Quality Assurance
 
 - ~90% automated test coverage using Pytest
-- Ruff linting and formatting
-- GitHub Actions continuous integration
-- Dockerized runtime for reproducible deployments
+- Ruff linting and code formatting
+- Continuous Integration using GitHub Actions
+- Dockerized runtime for consistent deployments
 - Modular architecture with separated tracking, storage, notification, and messaging components
 
 ---
 
 # 🚀 Getting Started
 
-## Clone
+## Clone the Repository
 
 ```bash
-git clone https://github.com/Akshat-Shukla2004/lc-competition-bot.git
+git clone https://github.com/Akshat-Shukla2004/leetcode-activity-tracker.git
 
-cd lc-competition-bot
+cd leetcode-activity-tracker
 ```
 
 ---
 
 ## Create a Virtual Environment
 
-Linux/macOS
+### Linux / macOS
 
 ```bash
 python -m venv .venv
@@ -153,7 +154,7 @@ python -m venv .venv
 source .venv/bin/activate
 ```
 
-Windows
+### Windows
 
 ```powershell
 python -m venv .venv
@@ -173,7 +174,7 @@ pip install -r requirements.txt
 
 ## Configuration
 
-Create a `.env` file.
+Create a `.env` file in the project root.
 
 ```env
 BOT_TOKEN=your_telegram_bot_token
@@ -190,7 +191,7 @@ The application validates `BOT_TOKEN` and `CHAT_ID` during startup.
 
 ---
 
-## Run
+## Run the Application
 
 ```bash
 python main.py
@@ -200,12 +201,12 @@ python main.py
 
 # 🐳 Docker
 
-Docker provides an isolated and reproducible runtime environment, ensuring the bot behaves consistently across development and production systems.
+Docker provides an isolated and reproducible runtime environment, ensuring identical behavior across local development and production deployments.
 
-## Build
+## Build the Image
 
 ```bash
-docker build -t lc-competition-bot .
+docker build -t leetcode-activity-tracker .
 ```
 
 ## Run (Linux/macOS)
@@ -214,7 +215,7 @@ docker build -t lc-competition-bot .
 docker run --rm \
 -v "$(pwd)/data.json:/app/data.json" \
 --env-file .env \
-lc-competition-bot
+leetcode-activity-tracker
 ```
 
 ## Run (Windows PowerShell)
@@ -223,22 +224,22 @@ lc-competition-bot
 docker run --rm `
 -v "${PWD}/data.json:/app/data.json" `
 --env-file .env `
-lc-competition-bot
+leetcode-activity-tracker
 ```
 
-The bind mount ensures that `data.json` persists between container runs so the bot remembers previously processed submissions.
+The bind mount keeps `data.json` outside the container, allowing the tracker to remember previously processed submissions between executions.
 
 ---
 
 # 🧪 Testing
 
-Run the complete test suite:
+Run the full test suite:
 
 ```bash
 pytest
 ```
 
-Run with coverage:
+Run tests with coverage:
 
 ```bash
 coverage run -m pytest
@@ -252,7 +253,7 @@ Run Ruff linting:
 ruff check .
 ```
 
-Format the codebase:
+Automatically format the codebase:
 
 ```bash
 ruff format .
@@ -262,14 +263,14 @@ ruff format .
 
 # ⚙️ GitHub Actions
 
-The repository includes an automated GitHub Actions workflow that:
+The repository includes a GitHub Actions workflow that automatically:
 
 - Installs project dependencies
 - Runs Ruff linting
 - Executes the complete Pytest suite
-- Validates code quality before changes are merged
+- Verifies code quality before changes are merged
 
-The project can also be executed on a scheduled GitHub Actions workflow to periodically check for new accepted submissions. Since GitHub Actions uses best-effort scheduling, actual execution timing may vary.
+A scheduled workflow can also periodically check for new accepted submissions. Since GitHub Actions uses best-effort scheduling, the actual execution time may vary.
 
 ---
 
@@ -278,8 +279,9 @@ The project can also be executed on a scheduled GitHub Actions workflow to perio
 - PostgreSQL persistence for multi-instance deployments
 - Configurable notification templates
 - Support for additional notification providers
-- Web dashboard for user management
-- REST API for managing tracked users
+- Web dashboard for managing tracked users
+- REST API for runtime configuration
+- Multi-platform competitive programming support (Codeforces, AtCoder, etc.)
 
 ---
 
@@ -287,18 +289,19 @@ The project can also be executed on a scheduled GitHub Actions workflow to perio
 
 Contributions, issues, and feature requests are welcome.
 
-If you'd like to contribute:
+To contribute:
 
 1. Fork the repository.
 2. Create a feature branch.
 3. Make your changes.
-4. Run the test suite and Ruff checks.
-5. Open a Pull Request.
+4. Run the full test suite.
+5. Run Ruff linting and formatting.
+6. Submit a Pull Request.
 
-Please ensure all tests pass before submitting changes.
+Please ensure all tests pass before opening a pull request.
 
 ---
 
 # 📄 License
 
-This project is licensed under the MIT License. See the `LICENSE` file for more information.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
