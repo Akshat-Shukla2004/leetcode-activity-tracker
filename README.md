@@ -1,11 +1,11 @@
 # 🚀 LeetCode Activity Tracker
 
-> A production-oriented Python application that tracks multiple LeetCode users, detects newly accepted submissions, and sends real-time Telegram notifications to keep competitive programming groups engaged.
+> A production-oriented Python application that tracks multiple LeetCode users, detects newly accepted submissions, persists tracker state using private GitHub Gists, and sends real-time Telegram notifications for competitive programming groups.
 
 <p align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.11+-3776AB?style=for-the-badge&logo=python&logoColor=white)
-![Pytest](https://img.shields.io/badge/Pytest-90%25%20Coverage-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
+![Pytest](https://img.shields.io/badge/Pytest-88%25%20Coverage-0A9EDC?style=for-the-badge&logo=pytest&logoColor=white)
 ![Ruff](https://img.shields.io/badge/Ruff-Linting-D7FF64?style=for-the-badge)
 ![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 
@@ -25,7 +25,9 @@
 - 📬 Send real-time Telegram notifications for newly accepted submissions
 - 🧠 Integrates with the LeetCode GraphQL API
 - 📊 Detects only newly accepted submissions to prevent duplicate alerts
-- 💾 Maintains persistent local state across executions
+- 💾 Persists tracker state using a private GitHub Gist
+- 🔄 Prevents duplicate notifications across GitHub Actions runs
+- ⚡ Runs automatically every 2 hours using GitHub Actions
 - ⚡ Lightweight, modular Python architecture
 - 🧪 Comprehensive Pytest suite (~90% test coverage)
 - 🎨 Ruff formatting and linting
@@ -64,10 +66,10 @@ https://leetcode.com/problems/two-sum/
                             │
              ┌──────────────┴──────────────┐
              ▼                             ▼
-  ┌──────────────────┐          ┌──────────────────┐
-  │ LeetCode GraphQL │          │ Local State      │
-  │       API        │          │ (data.json)      │
-  └──────────────────┘          └──────────────────┘
+  ┌──────────────────┐          ┌───────────────────────┐
+  │ LeetCode GraphQL │          │ GitHub Gist           │
+  │       API        │          │ (Persistent State)    │
+  └──────────────────┘          └───────────────────────┘
              │
              ▼
   ┌─────────────────────────────┐
@@ -115,6 +117,7 @@ https://leetcode.com/problems/two-sum/
 | Language | Python 3.11 |
 | API | LeetCode GraphQL |
 | Notifications | Telegram Bot API |
+| Persistent Storage | GitHub Gist API |
 | Testing | Pytest |
 | Code Quality | Ruff |
 | Automation | GitHub Actions |
@@ -124,7 +127,8 @@ https://leetcode.com/problems/two-sum/
 
 # ✅ Quality Assurance
 
-- ~90% automated test coverage using Pytest
+- 65 automated tests with 88% coverage using Pytest
+- Persistent state across GitHub Actions runs using GitHub Gists
 - Ruff linting and code formatting
 - Continuous Integration using GitHub Actions
 - Dockerized runtime for consistent deployments
@@ -180,12 +184,14 @@ Create a `.env` file in the project root.
 BOT_TOKEN=your_telegram_bot_token
 CHAT_ID=your_telegram_chat_id
 
-# Optional
+GIST_ID=your_private_gist_id
+GIST_TOKEN=your_github_personal_access_token
+
 MY_USERNAME=AkshatPrep
 OPPONENT_USERNAMES=user1,user2,user3
 ```
 
-The application validates `BOT_TOKEN` and `CHAT_ID` during startup.
+The application validates `BOT_TOKEN`, `CHAT_ID`, `GIST_ID`, and `GIST_TOKEN` during startup.
 
 `MY_USERNAME` and `OPPONENT_USERNAMES` are optional and fall back to the defaults defined in `backend/config.py`.
 
@@ -213,7 +219,6 @@ docker build -t leetcode-activity-tracker .
 
 ```bash
 docker run --rm \
--v "$(pwd)/data.json:/app/data.json" \
 --env-file .env \
 leetcode-activity-tracker
 ```
@@ -222,12 +227,11 @@ leetcode-activity-tracker
 
 ```powershell
 docker run --rm `
--v "${PWD}/data.json:/app/data.json" `
 --env-file .env `
 leetcode-activity-tracker
 ```
 
-The bind mount keeps `data.json` outside the container, allowing the tracker to remember previously processed submissions between executions.
+Tracker state is persisted in a private GitHub Gist, allowing Docker containers and GitHub Actions runners to remain completely stateless.
 
 ---
 
@@ -270,13 +274,13 @@ The repository includes a GitHub Actions workflow that automatically:
 - Executes the complete Pytest suite
 - Verifies code quality before changes are merged
 
-A scheduled workflow can also periodically check for new accepted submissions. Since GitHub Actions uses best-effort scheduling, the actual execution time may vary.
+A scheduled GitHub Actions workflow runs every 2 hours, persists tracker state using a private GitHub Gist, and prevents duplicate notifications across workflow executions.
 
 ---
 
 # 📈 Future Improvements
 
-- PostgreSQL persistence for multi-instance deployments
+- PostgreSQL or Redis persistence for multi-instance deployments
 - Configurable notification templates
 - Support for additional notification providers
 - Web dashboard for managing tracked users
