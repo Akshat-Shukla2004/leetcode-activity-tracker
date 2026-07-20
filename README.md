@@ -27,9 +27,9 @@
 - 📊 Detects only newly accepted submissions to prevent duplicate alerts
 - 💾 Persists tracker state using a private GitHub Gist
 - 🔄 Prevents duplicate notifications across GitHub Actions runs
-- ⚡ Runs automatically every 2 hours using GitHub Actions
+- ⚡ Runs automatically every 1 hour using GitHub Actions
 - ⚡ Lightweight, modular Python architecture
-- 🧪 Comprehensive Pytest suite (~90% test coverage)
+- 🧪 Comprehensive Pytest suite (~88% test coverage)
 - 🎨 Ruff formatting and linting
 - 🐳 Docker support for reproducible deployments
 - ⚙️ Automated GitHub Actions workflow
@@ -274,7 +274,7 @@ The repository includes a GitHub Actions workflow that automatically:
 - Executes the complete Pytest suite
 - Verifies code quality before changes are merged
 
-A scheduled GitHub Actions workflow runs every 2 hours, persists tracker state using a private GitHub Gist, and prevents duplicate notifications across workflow executions.
+A scheduled GitHub Actions workflow runs every 1 hour, persists tracker state using a private GitHub Gist, and prevents duplicate notifications across workflow executions.
 
 ---
 
