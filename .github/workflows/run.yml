@@ -3,7 +3,7 @@ name: LeetCode Competition Tracker
 on:
   schedule:
     # Runs every 2 hours
-    - cron: "0 */2 * * *"
+    - cron: "*/30 * * * *"
 
   workflow_dispatch:
     inputs:
