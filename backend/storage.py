@@ -1,7 +1,8 @@
 """
-storage.py - JSON-based persistence layer.
+storage.py - GitHub Gist-based persistence layer.
 
-Handles reading and writing data.json, which stores:
+Handles reading and writing application state to a private GitHub Gist,
+which stores:
   - last seen submission timestamps per user
   - daily solve counts (user + opponents)
   - historical daily progress
@@ -9,84 +10,155 @@ Handles reading and writing data.json, which stores:
 
 import json
 import logging
-import os
 from datetime import date
+
+import requests
 
 from backend import config
 
 logger = logging.getLogger(__name__)
 
-
-# ─── Schema helpers ───────────────────────────────────────────────────────────
+GIST_FILENAME = "leetcode-state.json"
+GIST_API_URL = "https://api.github.com/gists/{gist_id}"
+REQUEST_TIMEOUT = 15
 
 
 def _empty_user_record() -> dict:
-    """Default state for a newly tracked user."""
     return {
-        "last_submission_ts": 0,  # Unix timestamp of last seen accepted submission
-        "daily_solves": {},  # { "YYYY-MM-DD": count }
+        "last_submission_ts": 0,
+        "daily_solves": {},
     }
 
 
 def _clean_user_record(record: dict) -> dict:
-    """Return a normalized user record containing only supported fields."""
     cleaned = _empty_user_record()
     cleaned["last_submission_ts"] = record.get("last_submission_ts", 0)
-    cleaned["daily_solves"] = record.get("daily_solves", {})
+
+    daily = record.get("daily_solves", {})
+    cleaned["daily_solves"] = daily if isinstance(daily, dict) else {}
+
     return cleaned
 
 
 def _default_data() -> dict:
-    """Scaffold for a brand-new data.json."""
     return {
-        "users": {},  # username → user_record
-        "history": [],  # [ { "date": "YYYY-MM-DD", "solves": { username: count } } ]
+        "users": {},
+        "history": [],
     }
 
 
-# ─── Load / Save ─────────────────────────────────────────────────────────────
+def _gist_url() -> str:
+    return GIST_API_URL.format(gist_id=config.GIST_ID)
+
+
+def _gist_headers() -> dict:
+    return {
+        "Authorization": f"Bearer {config.GIST_TOKEN}",
+        "Accept": "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "leetcode-activity-tracker",
+    }
+
+
+def _fetch_gist_file_content(gist_file: dict) -> str:
+    if not gist_file.get("truncated"):
+        return gist_file.get("content", "") or ""
+
+    raw_url = gist_file.get("raw_url")
+    if not raw_url:
+        return gist_file.get("content", "") or ""
+
+    response = requests.get(
+        raw_url,
+        headers={"Authorization": f"Bearer {config.GIST_TOKEN}"},
+        timeout=REQUEST_TIMEOUT,
+    )
+    response.raise_for_status()
+    return response.text
 
 
 def load() -> dict:
-    """Load data.json; return default scaffold if file is missing or corrupt."""
-    if not os.path.exists(config.DATA_FILE):
-        logger.info("data.json not found — starting fresh.")
+    if not config.GIST_ID or not config.GIST_TOKEN:
+        logger.warning("GIST credentials not configured. Using empty state.")
         return _default_data()
 
     try:
-        with open(config.DATA_FILE, "r", encoding="utf-8") as fh:
-            data = json.load(fh)
-        # Ensure top-level keys always exist (forward-compat with old files)
-        users = data.setdefault("users", {})
-        data.setdefault("history", [])
-        data["users"] = {
-            username: _clean_user_record(record)
-            for username, record in users.items()
-            if isinstance(record, dict)
-        }
-        return data
-    except (json.JSONDecodeError, OSError) as exc:
-        logger.error("Failed to load data.json (%s) — starting fresh.", exc)
+        response = requests.get(
+            _gist_url(),
+            headers=_gist_headers(),
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        gist = response.json()
+
+        gist_file = gist.get("files", {}).get(GIST_FILENAME)
+        if not gist_file:
+            return _default_data()
+
+        raw_content = _fetch_gist_file_content(gist_file)
+
+    except (requests.exceptions.Timeout, requests.exceptions.RequestException, ValueError) as exc:
+        logger.error("Failed to fetch gist: %s", exc)
         return _default_data()
+
+    if not raw_content:
+        return _default_data()
+
+    try:
+        data = json.loads(raw_content)
+    except json.JSONDecodeError:
+        logger.error("Invalid JSON stored in gist.")
+        return _default_data()
+
+    if not isinstance(data, dict):
+        return _default_data()
+
+    users = data.get("users", {})
+    if not isinstance(users, dict):
+        users = {}
+
+    history = data.get("history", [])
+    if not isinstance(history, list):
+        history = []
+
+    data["users"] = {
+        u: _clean_user_record(r)
+        for u, r in users.items()
+        if isinstance(r, dict)
+    }
+    data["history"] = history
+
+    return data
 
 
 def save(data: dict) -> None:
-    """Atomically write data to data.json."""
+    if not config.GIST_ID or not config.GIST_TOKEN:
+        logger.warning("Skipping save because GIST credentials are missing.")
+        return
+
+    payload = {
+        "files": {
+            GIST_FILENAME: {
+                "content": json.dumps(data, indent=2, ensure_ascii=False)
+            }
+        }
+    }
+
     try:
-        tmp_path = config.DATA_FILE + ".tmp"
-        with open(tmp_path, "w", encoding="utf-8") as fh:
-            json.dump(data, fh, indent=2, ensure_ascii=False)
-        os.replace(tmp_path, config.DATA_FILE)
-        logger.debug("data.json saved successfully.")
-    except OSError as exc:
-        logger.error("Failed to save data.json: %s", exc)
+        response = requests.patch(
+            _gist_url(),
+            headers=_gist_headers(),
+            json=payload,
+            timeout=REQUEST_TIMEOUT,
+        )
+        response.raise_for_status()
+        logger.debug("Successfully updated GitHub Gist '%s'.", GIST_FILENAME)
 
-
-# ─── Per-user helpers ─────────────────────────────────────────────────────────
+    except (requests.exceptions.Timeout, requests.exceptions.RequestException) as exc:
+        logger.error("Failed to update GitHub Gist: %s", exc)
 
 
 def get_user(data: dict, username: str) -> dict:
-    """Return (and auto-create) the state record for a username."""
     if username not in data["users"]:
         data["users"][username] = _empty_user_record()
     return data["users"][username]
@@ -100,14 +172,7 @@ def get_last_submission_ts(data: dict, username: str) -> int:
     return get_user(data, username).get("last_submission_ts", 0)
 
 
-# ─── Daily solve tracking ─────────────────────────────────────────────────────
-
-
 def increment_daily_solves(data: dict, username: str) -> int:
-    """
-    Increment today's solve count for username.
-    Returns the updated daily count.
-    """
     today = date.today().isoformat()
     user = get_user(data, username)
     daily = user.setdefault("daily_solves", {})
@@ -116,30 +181,24 @@ def increment_daily_solves(data: dict, username: str) -> int:
 
 
 def get_daily_solves(data: dict, username: str, day: str | None = None) -> int:
-    """Return solve count for a specific day (default: today)."""
     day = day or date.today().isoformat()
     return get_user(data, username).get("daily_solves", {}).get(day, 0)
 
 
-# ─── History (for future graphs) ─────────────────────────────────────────────
-
-
 def record_history(data: dict, usernames: list[str]) -> None:
-    """
-    Append today's solve counts to the history list.
-    Safe to call multiple times per day — updates the existing entry if present.
-    """
     today = date.today().isoformat()
     solves = {u: get_daily_solves(data, u) for u in usernames}
 
-    # Update existing entry for today if it exists
     for entry in data["history"]:
         if entry.get("date") == today:
             entry["solves"] = solves
             return
 
-    # Otherwise append a new entry
-    data["history"].append({"date": today, "solves": solves})
+    data["history"].append(
+        {
+            "date": today,
+            "solves": solves,
+        }
+    )
 
-    # Keep only the last 90 days to avoid unbounded growth
     data["history"] = data["history"][-90:]

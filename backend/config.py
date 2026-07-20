@@ -1,16 +1,21 @@
 """
 config.py - Central configuration for the LeetCode Competition Tracker.
-All secrets are loaded from environment variables. Never hardcode credentials.
+All secrets are loaded from environment variables.
 """
 
 import os
 
-# ─── Telegram ────────────────────────────────────────────────────────────────
-BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "")
-CHAT_ID: str = os.environ.get("CHAT_ID", "")
+# ─────────────────────────────────────────────────────────────
+# Telegram
+# ─────────────────────────────────────────────────────────────
+BOT_TOKEN: str = os.environ.get("BOT_TOKEN", "").strip()
+CHAT_ID: str = os.environ.get("CHAT_ID", "").strip()
 
-# ─── LeetCode Usernames ───────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# LeetCode Usernames
+# ─────────────────────────────────────────────────────────────
 _DEFAULT_MY_USERNAME = "AkshatPrep"
+
 _DEFAULT_OPPONENT_USERNAMES = [
     "riceeater21",
     "Adarsh200IQ",
@@ -35,37 +40,61 @@ _DEFAULT_OPPONENT_USERNAMES = [
     "krthk200518",
 ]
 
-MY_USERNAME = os.environ.get("MY_USERNAME", "").strip() or _DEFAULT_MY_USERNAME
+MY_USERNAME: str = (
+    os.environ.get("MY_USERNAME", "").strip()
+    or _DEFAULT_MY_USERNAME
+)
 
-_opponents_env = os.environ.get("OPPONENT_USERNAMES", "").strip()
-if _opponents_env:
-    _env_opponents = [u.strip() for u in _opponents_env.split(",") if u.strip()]
+_opponents = os.environ.get("OPPONENT_USERNAMES", "").strip()
+
+if _opponents:
+    extra = [u.strip() for u in _opponents.split(",") if u.strip()]
     OPPONENT_USERNAMES = list(
-        dict.fromkeys(_DEFAULT_OPPONENT_USERNAMES + _env_opponents)
+        dict.fromkeys(_DEFAULT_OPPONENT_USERNAMES + extra)
     )
 else:
     OPPONENT_USERNAMES = _DEFAULT_OPPONENT_USERNAMES
 
-# ─── Storage ──────────────────────────────────────────────────────────────────
-DATA_FILE: str = "data.json"
+# ─────────────────────────────────────────────────────────────
+# GitHub Gist Storage
+# ─────────────────────────────────────────────────────────────
+GIST_ID: str = os.environ.get("GIST_ID", "").strip()
+GIST_TOKEN: str = os.environ.get("GIST_TOKEN", "").strip()
 
-# ─── Thresholds ───────────────────────────────────────────────────────────────
-# Minutes of user inactivity before messages escalate in aggression
-INACTIVITY_ESCALATION_MINUTES: int = 60
+# ─────────────────────────────────────────────────────────────
+# Tracker Configuration
+# ─────────────────────────────────────────────────────────────
+INACTIVITY_ESCALATION_MINUTES: int = int(
+    os.environ.get("INACTIVITY_ESCALATION_MINUTES", "60")
+)
 
-# Ignore opponent submissions older than this (prevents old/baseline spam)
-MAX_ALERT_AGE_HOURS: int = 24
+MAX_ALERT_AGE_HOURS: int = int(
+    os.environ.get("MAX_ALERT_AGE_HOURS", "24")
+)
 
-
-# ─── Validation ───────────────────────────────────────────────────────────────
+# ─────────────────────────────────────────────────────────────
+# Validation
+# ─────────────────────────────────────────────────────────────
 def validate() -> None:
-    """Raise early if required secrets are missing."""
+    """
+    Validate required runtime configuration.
+    """
     missing = []
+
     if not BOT_TOKEN:
         missing.append("BOT_TOKEN")
+
     if not CHAT_ID:
         missing.append("CHAT_ID")
+
+    if not GIST_ID:
+        missing.append("GIST_ID")
+
+    if not GIST_TOKEN:
+        missing.append("GIST_TOKEN")
+
     if missing:
         raise EnvironmentError(
-            f"Missing required environment variables: {', '.join(missing)}"
+            "Missing required environment variables: "
+            + ", ".join(missing)
         )

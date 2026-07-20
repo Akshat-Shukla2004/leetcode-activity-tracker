@@ -2,16 +2,27 @@ name: LeetCode Competition Tracker
 
 on:
   schedule:
-    # Scheduled GitHub Actions workflow; actual execution timing is best-effort.
-    - cron: "*/5 * * * *"
+    # Runs every 2 hours
+    - cron: "0 */2 * * *"
 
-  # Allow manual trigger from GitHub Actions UI (useful for testing)
   workflow_dispatch:
     inputs:
       mode:
-        description: "Run mode: 'check' or 'leaderboard'"
+        description: "Run mode: check or leaderboard"
         required: false
         default: "check"
+
+concurrency:
+  group: leetcode-tracker
+  cancel-in-progress: true
+
+env:
+  BOT_TOKEN: ${{ secrets.BOT_TOKEN }}
+  CHAT_ID: ${{ secrets.CHAT_ID }}
+  MY_USERNAME: ${{ secrets.MY_USERNAME }}
+  OPPONENT_USERNAMES: ${{ secrets.OPPONENT_USERNAMES }}
+  GIST_ID: ${{ secrets.GIST_ID }}
+  GIST_TOKEN: ${{ secrets.GIST_TOKEN }}
 
 jobs:
   track:
@@ -19,38 +30,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ── 1. Checkout repo ──────────────────────────────────────────────────
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ── 2. Set up Python ──────────────────────────────────────────────────
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
-      # ── 3. Install dependencies ───────────────────────────────────────────
       - name: Install dependencies
-        run: pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
-      # ── 4. Restore cached data.json from previous run ─────────────────────
-      # Use restore/save split with unique keys so state can be updated each run.
-      - name: Restore state cache
-        uses: actions/cache/restore@v4
-        with:
-          path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
-          restore-keys: |
-            leetcode-tracker-state-${{ runner.os }}-
-
-      # ── 5. Run the tracker ────────────────────────────────────────────────
       - name: Run tracker
-        env:
-          BOT_TOKEN:            ${{ secrets.BOT_TOKEN }}
-          CHAT_ID:              ${{ secrets.CHAT_ID }}
-          MY_USERNAME:          ${{ secrets.MY_USERNAME }}
-          OPPONENT_USERNAMES:   ${{ secrets.OPPONENT_USERNAMES }}
         run: |
           if [ "${{ github.event.inputs.mode }}" = "leaderboard" ]; then
             python main.py leaderboard
@@ -58,59 +52,37 @@ jobs:
             python main.py
           fi
 
-      # ── 6. Save updated data.json back to cache ───────────────────────────
-      - name: Save updated state cache
-        if: always() && hashFiles('data.json') != ''
-        uses: actions/cache/save@v4
-        with:
-          path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
-
-  # ── Leaderboard job within the scheduled workflow ────────────────────────
   leaderboard:
     name: Daily Leaderboard
     runs-on: ubuntu-latest
 
-    # Runs when the scheduled workflow reaches the configured leaderboard window.
     if: github.event_name == 'schedule'
 
-    steps:
-      - uses: actions/checkout@v4
+    needs:
+      - track
 
-      - name: Set up Python 3.11
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.11"
           cache: "pip"
 
       - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Restore state cache
-        uses: actions/cache/restore@v4
-        with:
-          path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
-          restore-keys: |
-            leetcode-tracker-state-${{ runner.os }}-
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
 
       - name: Send leaderboard
-        env:
-          BOT_TOKEN:            ${{ secrets.BOT_TOKEN }}
-          CHAT_ID:              ${{ secrets.CHAT_ID }}
-          MY_USERNAME:          ${{ secrets.MY_USERNAME }}
-          OPPONENT_USERNAMES:   ${{ secrets.OPPONENT_USERNAMES }}
-        # The workflow triggers the leaderboard mode only during the configured window.
         run: |
-          MINUTE=$(date +%M)
-          HOUR=$(date +%H)
-          if [ "$HOUR" = "20" ] && [ "$MINUTE" -lt "05" ]; then
-            python main.py leaderboard
-          fi
+          HOUR=$(date -u +%H)
 
-      - name: Save updated state cache
-        if: always() && hashFiles('data.json') != ''
-        uses: actions/cache/save@v4
-        with:
-          path: data.json
-          key: leetcode-tracker-state-${{ runner.os }}-${{ github.run_id }}-${{ github.job }}
+          # Runs once per day at the 20:00 UTC schedule
+          if [ "$HOUR" = "20" ]; then
+            python main.py leaderboard
+          else
+            echo "Skipping leaderboard."
+          fi
