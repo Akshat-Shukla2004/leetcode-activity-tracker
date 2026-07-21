@@ -132,9 +132,9 @@ def generate_leaderboard_message(
     Returns:
         Telegram-ready markdown string.
     """
-    from backend.storage import get_daily_solves
+    from backend.storage import current_date_key, get_daily_solves
 
-    today = date.today().isoformat()
+    today = current_date_key()
     lines = [f"📊 *Daily Leaderboard — {today}*\n"]
 
     all_users = [my_username] + opponent_usernames
