@@ -213,6 +213,41 @@ def test_get_question_details_returns_none_on_failure(mocker):
     assert leetcode.get_question_details("two-sum") is None
 
 
+def test_get_question_details_returns_none_on_timeout(mocker):
+    mocker.patch(
+        "backend.leetcode.requests.post",
+        side_effect=requests.exceptions.Timeout,
+    )
+
+    assert leetcode.get_question_details("two-sum") is None
+
+
+def test_get_question_details_returns_none_on_invalid_json(mocker):
+    class BadResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            raise ValueError()
+
+    mocker.patch("backend.leetcode.requests.post", return_value=BadResponse())
+
+    assert leetcode.get_question_details("two-sum") is None
+
+
+def test_get_question_details_returns_none_when_question_is_missing(mocker):
+    class EmptyResponse:
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return {"data": {"question": None}}
+
+    mocker.patch("backend.leetcode.requests.post", return_value=EmptyResponse())
+
+    assert leetcode.get_question_details("two-sum") is None
+
+
 def test_seconds_ago():
     now = leetcode.time.time()
 
