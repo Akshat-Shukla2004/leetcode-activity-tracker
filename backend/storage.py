@@ -10,7 +10,7 @@ which stores:
 
 import json
 import logging
-from datetime import date
+from datetime import datetime, timezone
 
 import requests
 
@@ -21,6 +21,11 @@ logger = logging.getLogger(__name__)
 GIST_FILENAME = "leetcode-state.json"
 GIST_API_URL = "https://api.github.com/gists/{gist_id}"
 REQUEST_TIMEOUT = 15
+
+
+def current_date_key() -> str:
+    """Return the UTC date key used for daily solve buckets."""
+    return datetime.now(timezone.utc).date().isoformat()
 
 
 def _empty_user_record() -> dict:
@@ -173,20 +178,29 @@ def get_last_submission_ts(data: dict, username: str) -> int:
 
 
 def increment_daily_solves(data: dict, username: str) -> int:
-    today = date.today().isoformat()
+    today = current_date_key()
     user = get_user(data, username)
     daily = user.setdefault("daily_solves", {})
-    daily[today] = daily.get(today, 0) + 1
-    return daily[today]
+    previous = daily.get(today, 0)
+    new_total = previous + 1
+    daily[today] = new_total
+    logger.info(
+        "increment_daily_solves called for '%s': date=%s previous=%d new=%d",
+        username,
+        today,
+        previous,
+        new_total,
+    )
+    return new_total
 
 
 def get_daily_solves(data: dict, username: str, day: str | None = None) -> int:
-    day = day or date.today().isoformat()
+    day = day or current_date_key()
     return get_user(data, username).get("daily_solves", {}).get(day, 0)
 
 
 def record_history(data: dict, usernames: list[str]) -> None:
-    today = date.today().isoformat()
+    today = current_date_key()
     solves = {u: get_daily_solves(data, u) for u in usernames}
 
     for entry in data["history"]:

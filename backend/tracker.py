@@ -100,7 +100,6 @@ def check_opponent(data: dict, opponent: str) -> int:
         problem = submission["title"]
         logger.info("NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts)
 
-        storage.set_last_submission_ts(data, opponent, new_ts)
         daily_count = storage.increment_daily_solves(data, opponent)
 
         logger.info("'%s' daily count: %d", opponent, daily_count)
@@ -158,22 +157,31 @@ def sync_my_activity(data: dict) -> None:
     Fetch my own latest submission and update storage.
     Used to keep the inactivity tracker honest.
     """
-    latest = leetcode.get_latest_accepted(config.MY_USERNAME)
-    if not latest:
-        return
-
-    new_ts = latest["timestamp"]
     last_ts = storage.get_last_submission_ts(data, config.MY_USERNAME)
 
     if last_ts == 0:
+        latest = leetcode.get_latest_accepted(config.MY_USERNAME)
+        if not latest:
+            return
+
+        new_ts = latest["timestamp"]
         logger.info(
             "Initialized my baseline at ts=%d (no retroactive self-count).", new_ts
         )
         storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
         return
 
-    if new_ts > last_ts:
-        logger.info("My new submission: '%s' at ts=%d", latest["title"], new_ts)
+    submissions = leetcode.get_accepted_submissions_since(
+        config.MY_USERNAME,
+        since_ts=last_ts,
+    )
+
+    if not submissions:
+        return
+
+    for submission in submissions:
+        new_ts = submission["timestamp"]
+        logger.info("My new submission: '%s' at ts=%d", submission["title"], new_ts)
         storage.set_last_submission_ts(data, config.MY_USERNAME, new_ts)
         storage.increment_daily_solves(data, config.MY_USERNAME)
 
@@ -217,6 +225,14 @@ def run_check_cycle() -> None:
     # Snapshot history for graph data
     all_users = [config.MY_USERNAME] + config.OPPONENT_USERNAMES
     storage.record_history(data, all_users)
+
+    logger.info(
+        "Persisting daily_solves snapshot before save: %s",
+        {
+            username: record.get("daily_solves", {})
+            for username, record in data.get("users", {}).items()
+        },
+    )
 
     # Persist all updates atomically
     storage.save(data)

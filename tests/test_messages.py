@@ -39,43 +39,7 @@ def test_generate_alert_message():
     assert "Easy" in msg
     assert "leetcode.com/problems/two-sum/" in msg
 
-
-def test_generate_leaderboard_message():
-    today = messages.date.today().isoformat()
-
-    data = {
-        "users": {
-            "me": {
-                "daily_solves": {
-                    today: 3,
-                },
-            },
-            "alice": {
-                "daily_solves": {
-                    today: 5,
-                },
-            },
-            "bob": {
-                "daily_solves": {
-                    today: 1,
-                },
-            },
-        },
-        "history": [],
-    }
-
-    leaderboard = messages.generate_leaderboard_message(
-        data,
-        "me",
-        ["alice", "bob"],
-    )
-
-    assert "Daily Leaderboard" in leaderboard
-    assert "alice" in leaderboard
-    assert "bob" in leaderboard
-    assert "You" in leaderboard
-    assert "Opponents solved" in leaderboard
-    assert "🔥" not in leaderboard
+   
 
 
 def test_generate_inactivity_nudge():
@@ -106,31 +70,3 @@ def test_generate_alert_escapes_problem_special_characters():
 
     assert "Weekly\\[Contest]\\_123\\*" in msg
     assert "leetcode.com/problems/weekly-contest-123/" in msg
-
-
-def test_leaderboard_is_sorted():
-    today = messages.date.today().isoformat()
-
-    data = {
-        "users": {
-            "me": {
-                "daily_solves": {today: 1},
-            },
-            "alice": {
-                "daily_solves": {today: 5},
-            },
-            "bob": {
-                "daily_solves": {today: 3},
-            },
-        },
-        "history": [],
-    }
-
-    leaderboard = messages.generate_leaderboard_message(
-        data,
-        "me",
-        ["alice", "bob"],
-    )
-
-    assert leaderboard.find("alice") < leaderboard.find("bob")
-    assert leaderboard.find("bob") < leaderboard.find("You")

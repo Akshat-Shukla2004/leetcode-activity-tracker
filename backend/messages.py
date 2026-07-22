@@ -116,55 +116,6 @@ def generate_alert_message(
     return body + "\n\n" + "\n".join(details)
 
 
-def generate_leaderboard_message(
-    data: dict,
-    my_username: str,
-    opponent_usernames: list[str],
-) -> str:
-    """
-    Generate a formatted daily leaderboard summary.
-
-    Args:
-        data:               Loaded storage data dict.
-        my_username:        Your LeetCode username.
-        opponent_usernames: List of opponent usernames.
-
-    Returns:
-        Telegram-ready markdown string.
-    """
-    from backend.storage import get_daily_solves
-
-    today = date.today().isoformat()
-    lines = [f"📊 *Daily Leaderboard — {today}*\n"]
-
-    all_users = [my_username] + opponent_usernames
-    entries = []
-    for uname in all_users:
-        solves = get_daily_solves(data, uname)
-        label = (
-            "🧑 You"
-            if uname == my_username
-            else f"😈 {_escape_telegram_markdown(uname)}"
-        )
-        entries.append((solves, label))
-
-    # Sort by descending solve count
-    entries.sort(key=lambda e: e[0], reverse=True)
-
-    for rank, (solves, label) in enumerate(entries, start=1):
-        medal = ["🥇", "🥈", "🥉"][rank - 1] if rank <= 3 else f"{rank}."
-        lines.append(f"{medal} {label}: *{solves}* solve(s) today")
-
-    my_solves = get_daily_solves(data, my_username)
-    opponents_total = sum(get_daily_solves(data, uname) for uname in opponent_usernames)
-    lines.append("")
-    lines.append(
-        f"🧾 Opponents solved *{opponents_total}* question(s) today while you solved *{my_solves}* question(s)."
-    )
-
-    return "\n".join(lines)
-
-
 def generate_inactivity_nudge(user_inactive_minutes: int) -> str:
     """
     Generate a nudge message when the user themselves have been inactive too long.
