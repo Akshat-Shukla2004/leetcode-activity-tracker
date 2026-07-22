@@ -11,3 +11,8 @@ ENV/
 .DS_Store
 Thumbs.db
 .vscode/
+
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
