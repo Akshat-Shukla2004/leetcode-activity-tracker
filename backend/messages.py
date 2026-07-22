@@ -7,7 +7,6 @@ Intensity scales based on how long the user has been inactive.
 
 import random
 import time
-from datetime import date
 
 from backend import config
 

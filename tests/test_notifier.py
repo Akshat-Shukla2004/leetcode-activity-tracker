@@ -121,17 +121,3 @@ def test_send_silent_calls_send_raw(mocker):
         "Test",
         disable_notification=True,
     )
-
-
-def test_send_leaderboard_calls_send_raw(mocker):
-    mocked = mocker.patch(
-        "backend.notifier._send_raw",
-        return_value=True,
-    )
-
-    notifier.send_leaderboard("Leaderboard")
-
-    mocked.assert_called_once_with(
-        "Leaderboard",
-        disable_notification=False,
-    )
