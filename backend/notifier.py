@@ -58,7 +58,3 @@ def send_silent(body: str) -> bool:
     """Send a single silent message (no push notification)."""
     return _send_raw(body, disable_notification=True)
 
-
-def send_leaderboard(body: str) -> bool:
-    """Send a normal leaderboard message (with notification)."""
-    return _send_raw(body, disable_notification=False)

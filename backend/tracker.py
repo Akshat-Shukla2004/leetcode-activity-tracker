@@ -100,7 +100,6 @@ def check_opponent(data: dict, opponent: str) -> int:
         problem = submission["title"]
         logger.info("NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts)
 
-        storage.set_last_submission_ts(data, opponent, new_ts)
         daily_count = storage.increment_daily_solves(data, opponent)
 
         logger.info("'%s' daily count: %d", opponent, daily_count)
