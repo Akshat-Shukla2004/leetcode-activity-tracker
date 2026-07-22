@@ -2,8 +2,8 @@ name: LeetCode Competition Tracker
 
 on:
   schedule:
-    # Runs every 1 hour
-    - cron: "0 * * * *"
+    # Runs every 20 minutes
+    - cron: "*/20 * * * *"
 
 
 concurrency:
