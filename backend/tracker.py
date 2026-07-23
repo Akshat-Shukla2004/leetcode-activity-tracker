@@ -94,9 +94,18 @@ def check_opponent(data: dict, opponent: str) -> int:
 
     alert_count = 0
     last_seen_ts = last_ts
+    user_record = data["users"][opponent]
+    processed = set(user_record.get("processed_submissions", []))
 
     for submission in fresh_submissions:
         new_ts = submission["timestamp"]
+        if new_ts in processed:
+            logger.info(
+                "Skipping duplicate submission for '%s' at ts=%d",
+                opponent,
+                new_ts,
+            )
+            continue
         problem = submission["title"]
         logger.info("NEW submission for '%s': '%s' at ts=%d", opponent, problem, new_ts)
 
@@ -122,14 +131,13 @@ def check_opponent(data: dict, opponent: str) -> int:
         )
 
         success = notifier.send_alert(msg)
-        if not success:
+
+        if success:
+            storage.set_last_submission_ts(data, opponent, new_ts)
+            last_seen_ts = new_ts
+            alert_count += 1
+        else:
             logger.warning("Alert for '%s' failed to send.", opponent)
-
-        alert_count += 1
-        last_seen_ts = new_ts
-
-    if last_seen_ts > last_ts:
-        storage.set_last_submission_ts(data, opponent, last_seen_ts)
 
     return alert_count
 

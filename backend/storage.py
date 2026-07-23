@@ -30,14 +30,16 @@ def current_date_key() -> str:
 
 def _empty_user_record() -> dict:
     return {
-        "last_submission_ts": 0,
-        "daily_solves": {},
-    }
-
+    "last_submission_ts": 0,
+    "processed_submissions": [],
+    "daily_solves": {},
+}
 
 def _clean_user_record(record: dict) -> dict:
     cleaned = _empty_user_record()
-    cleaned["last_submission_ts"] = record.get("last_submission_ts", 0)
+    cleaned["processed_submissions"] = record.get(
+    "processed_submissions", []
+)
 
     daily = record.get("daily_solves", {})
     cleaned["daily_solves"] = daily if isinstance(daily, dict) else {}
